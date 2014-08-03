@@ -172,7 +172,7 @@ exports.startWar = function (clanA, clanB, room) {
 	var clanAMembers = exports.getAvailableMembers(clanA).randomize();
 	var clanBMembers = exports.getAvailableMembers(clanB).randomize();
 	var memberCount = Math.min(clanAMembers.length, clanBMembers.length);
-	if (memberCount < 4)
+	if (memberCount < 3)
 		return false;
 
 	var matchups = {};
