@@ -204,23 +204,17 @@ exports.setWarResult = function (clanA, clanB, result) {
 	if (!clans[clanAId] || !clans[clanBId] || result < 0 || result > 1)
 		return false;
 
-	var clanAExpectedResult = elo.getExpected(clans[clanAId].rating, clans[clanBId].rating);
-	var clanBExpectedResult = elo.getExpected(clans[clanBId].rating, clans[clanAId].rating);
-	clans[clanAId].rating = elo.updateRating(clanAExpectedResult, result, clans[clanAId].rating);
-	clans[clanBId].rating = elo.updateRating(clanBExpectedResult, 1 - result, clans[clanBId].rating);
-
-	if (clans[clanAId].rating < 1000)
-		clans[clanAId].rating = 1000;
-	if (clans[clanBId].rating < 1000)
-		clans[clanBId].rating = 1000;
-
 	if (result === 1) {
+		clans[clanAId].rating += 3;
 		++clans[clanAId].wins;
 		++clans[clanBId].losses;
 	} else if (result === 0) {
+		clans[clanBId].rating += 3;
 		++clans[clanAId].losses;
 		++clans[clanBId].wins;
 	} else {
+		clans[clanAId].rating += 1;
+		clans[clanBId].rating += 1;
 		++clans[clanAId].draws;
 		++clans[clanBId].draws;
 	}
