@@ -1448,15 +1448,31 @@ var commands = exports.commands = {
 	 * Clan commands
 	 *********************************************************/
 
+	ayudaclan: 'clanshelp',
+	clanhelp: 'clanshelp',
 	clanshelp: function () {
 		if (!this.canBroadcast()) return false;
 		this.sendReplyBox(
-			"/clans [name] - Gets information about all clans, or about the specified clan<br />" +
-			"/clanwaravailable - Sets yourself as available for clan wars for 5 minutes<br />" +
+			"/clanes - Lista los clanes.<br />" +
+			"/clan (clan/miembro) - Muestra la ficha del clan.<br />" +
+			"/miembrosclan (clan/miembro) - muestra los miembros con los que cuenta un clan.<br />" +
+			"<br />" +
+			"/liderclan - Nombra a un miembro líder del clan.<br />" +
+			"/oficialclan - Nombra a un miembro oficial del clan.<br />" +
+			"/demoteclan - Borra a un miembro del staff del clan.<br />" +
+			"/invitarclan - Invita a un usuario a unirse al clan.<br />" +
+			"/aceptarclan nombredelclan - Acepta una invitación al clan.<br />" +
+			"/expulsarclan nombredelclan - Expulsa a un miembro del clan.<br />" +
 			"/createclan &lt;name> - Creates a clan<br />" +
 			"/deleteclan &lt;name> - Deletes a clan<br />" +
 			"/addclanmember &lt;clan>, &lt;user> - Adds a user to a clan<br />" +
 			"/removeclanmember &lt;clan>, &lt;user> - Removes a user from a clan<br />" +
+			"/setlemaclan<br />" +
+			"/setlogoclan<br />" +
+			"/setsalaclan<br />" +
+			"/setgxeclan clan, w, l, d<br />" +
+			"/settitleclan<br />" +
+			"/serankclan<br />" +
 			"/startclanwar &lt;clan 1>, &lt;clan 2> - Starts a war between two clans<br />" +
 			"/endclanwar &lt;clan> - Ends a clan war forcibly<br />" +
 			"/getclanwarmatchups &lt;clan> - Shows the war battles that haven't yet been started<br />"
@@ -1481,20 +1497,11 @@ var commands = exports.commands = {
 			this.sendReply("Clan: " + target + " successfully deleted.");
 	},
 
-	clan: 'getclans',
-	clans: 'getclans',
-	getclan: 'getclans',
-	getclans: function (target) {
+	getclans: 'clans',
+	clanes: 'clans',
+	clans: function (target, room, user) {
 		if (!this.canBroadcast()) return false;
-
-		var clan = Clans.getRating(target);
-		if (!clan) {
-			target = Clans.findClanFromMember(target);
-			if (target)
-				clan = Clans.getRating(target);
-		}
-		if (!clan) {
-			this.sendReplyBox(
+		this.sendReplyBox(
 				"<strong>Clans:</strong><br />" +
 				Clans.getClans().map(function (clan) {
 					var result = Clans.getRating(clan);
@@ -1505,16 +1512,169 @@ var commands = exports.commands = {
 				}).map(function (clan) {
 					return '<strong>' + Tools.escapeHTML(clan.name) + ':</strong> ' + clan.ratingName + " (" + clan.rating + ") " + clan.wins + "/" + clan.losses + "/" + clan.draws;
 				}).join('<br />')
-			);
+		);
+	},
+    
+	clanmembers: 'miembrosclan',
+	miembrosclan: function (target, room, user) {
+		var autoclan = false;
+		if (!target) autoclan = true;
+		if (!this.canBroadcast()) return false;
+		var clan = Clans.getRating(target);
+		if (!clan) {
+			target = Clans.findClanFromMember(target);
+			if (target)
+				clan = Clans.getRating(target);
+		}
+		if (!clan && autoclan) {
+			target = Clans.findClanFromMember(user.name);
+			if (target)
+				clan = Clans.getRating(target);
+		}
+		if (!clan) {
+			this.sendReply("El clan especificado no existe o no está disponible.");
 			return;
 		}
-
+		var nMembers = 0;
+		var membersClan = Clans.getMembers(target);
+		if (!membersClan) {
+			nMembers = 0;
+		} else {
+			nMembers = membersClan.length;
+		}
 		this.sendReplyBox(
-			'<strong>' + Tools.escapeHTML(Clans.getClanName(target)) + '</strong><br />' +
-			"<strong>Rating:</strong> " + clan.ratingName + " (" + clan.rating + ")<br />" +
-			"<strong>Wins/Losses/Draws:</strong> " + clan.wins + "/" + clan.losses + "/" + clan.draws + '<br />' +
-			"<strong>Members:</strong> " + Tools.escapeHTML(Clans.getMembers(target).sort().join(", "))
+			"<strong>Miembros del clan " + Tools.escapeHTML(clan.compname) + ":</strong> " + Tools.escapeHTML(Clans.getMembers(target).sort().join(", ")) + '<br /><br /><strong>Número de miembros: ' + nMembers + '</strong>'
 		);
+	},
+
+	clan: 'getclan',
+	getclan: function (target, room, user) {
+		var autoClan = false;
+		var memberClanProfile = false;
+		var clanMember = "";
+		if (!target) autoClan = true;
+		if (!this.canBroadcast()) return false;
+		var clan = Clans.getProfile(target);
+		if (!clan) {
+			clanMember = target;
+			target = Clans.findClanFromMember(target);
+			memberClanProfile = true;
+			if (target)
+				clan = Clans.getProfile(target);
+		}
+		if (!clan && autoClan) {
+			target = Clans.findClanFromMember(user.name);
+			if (target)
+				clan = Clans.getProfile(target);
+			memberClanProfile = true;
+			clanMember = user.name;
+		}
+		if (!clan) {
+			this.sendReply("El clan especificado no existe o no está disponible.");
+			return;
+		}
+		var salaClanSource = "";
+		if (clan.sala === "none") {
+			salaClanSource = 'Aún no establecida.'
+		} else {
+			salaClanSource = '<button name="send" value="/join ' + clan.sala + '" target="_blank">' + clan.sala + '</button>'
+		}
+		var clanTitle = "";
+		if (memberClanProfile){
+			var authValue = Clans.authMember(target, clanMember);
+			if (authValue === 2){
+				clanTitle = clanMember + " - Líder del clan" + clan.compname;
+			} else if (authValue === 1){
+				clanTitle = clanMember + " - Oficial del clan" + clan.compname;
+			} else {
+				clanTitle = clanMember + " - Miembro del clan" + clan.compname;
+			}
+		} else {
+			clanTitle = clan.compname;
+		}
+		this.sendReplyBox(
+			'<div id="fichaclan">' +
+			'<h4><center><p> <br />' + Tools.escapeHTML(clanTitle) + '</center></h4><hr width="90%" />' +
+			'<table width="90%" border="0" align="center"><tr><td width="180" rowspan="2"><div align="center"><img src="' + encodeURI(clan.logo) +
+			'" width="160" height="160" /></div></td><td height="64" align="left" valign="middle"><span class="lemaclan">'+ Tools.escapeHTML(clan.lema) + 
+			'</span></td> </tr>  <tr>    <td align="left" valign="middle"><strong>Sala Propia</strong>: ' + Tools.escapeHTML(salaClanSource) + 
+			' <p style="font-style: normal;font-size: 16px;"><strong>Rating</strong>:&nbsp;' + clan.rating +
+			' puntos, ' + clan.gxeint + '% GXE (' + clan.wins + ' Victorias, ' + clan.losses + ' Derrotas, ' + clan.draws + 
+			' Empates) </p> <p style="font-style: normal;font-size: 16px;">' +
+			'&nbsp;</p></td>  </tr></table></div>'
+		);
+	},
+
+	setlemaclan: function (target) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (params.length !== 2) return this.sendReply("Usage: /setlemaclan clan, lema");
+
+		if (!Clans.setLema(params[0], params[1]))
+			this.sendReply("El clan no existe o el lema es mayor de 80 caracteres.");
+		else {
+			this.sendReply("El nuevo lema del clan " + params[0] + " ha sido establecido con éxito.");
+		}
+	},
+
+	setlogoclan: function (target) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (params.length !== 2) return this.sendReply("Usage: /setlogoclan clan, logo");
+
+		if (!Clans.setLogo(params[0], params[1]))
+			this.sendReply("El clan no existe o el link del logo es mayor de 80 caracteres.");
+		else {
+			this.sendReply("El nuevo logo del clan " + params[0] + " ha sido establecido con éxito.");
+		}
+	},
+
+	settitleclan: function (target) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (params.length !== 2) return this.sendReply("Usage: /settitleclan clan, titulo");
+		
+		if (!Clans.setCompname(params[0], params[1]))
+			this.sendReply("El clan no existe o el título es mayor de 80 caracteres.");
+		else {
+			this.sendReply("El nuevo titulo del clan " + params[0] + " ha sido establecido con éxito.");
+		}
+	},
+
+	setrankclan: function (target) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (params.length !== 2) return this.sendReply("Usage: /setrankclan clan, valor");
+
+		if (!Clans.setRanking(params[0], params[1]))
+			this.sendReply("El clan no existe o el valor no es válido.");
+		else {
+			this.sendReply("El nuevo rank para el clan " + params[0] + " ha sido establecido con éxito.");
+		}
+	},
+
+	setgxeclan: function (target) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (params.length !== 4) return this.sendReply("Usage: /setgxeclan clan, wins, losses, ties");
+
+		if (!Clans.setGxe(params[0], params[1], params[2], params[3]))
+			this.sendReply("El clan no existe o el valor no es válido.");
+		else {
+			this.sendReply("El nuevo GXE para el clan " + params[0] + " ha sido establecido con éxito.");
+		}
+	},
+
+	setsalaclan: function (target) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (params.length !== 2) return this.sendReply("Usage: /setsalaclan clan, sala");
+
+		if (!Clans.setSala(params[0], params[1]))
+			this.sendReply("El clan no existe o el nombre de la sala es mayor de 80 caracteres.");
+		else {
+			this.sendReply("La nueva sala del clan " + params[0] + " ha sido establecida con éxito.");
+		}
 	},
 
 	addclanmember: function (target) {
@@ -1529,7 +1689,144 @@ var commands = exports.commands = {
 			this.sendReply("Could not add the user to the clan. Does the clan exist or is the user already in another clan?");
 		else {
 			this.sendReply("User: " + user.name + " successfully added to the clan.");
-			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " has joined clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " se ha unido al clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+		}
+	},
+
+	clanleader: 'liderclan',
+	liderclan: function (target, room, user) {
+		if (!this.can('clans')) return false;
+		var params = target.split(',');
+		if (!params) return this.sendReply("Usage: /liderclan member");
+
+		var userk = Users.getExact(params[0]);
+		if (!userk || !userk.connected) return this.sendReply("Usuario: " + params[0] + " no existe o no está disponible.");
+
+		if (!Clans.addLeader(params[0]))
+			this.sendReply("El usuario no existe, no pertenece a ningún clan o ya era líder de su clan.");
+		else {
+			var clanUser = Clans.findClanFromMember(params[0]);
+			this.sendReply("Usuario: " + userk.name + " nombrado correctamente líder del clan " + clanUser + ".");
+			userk.popup(user.name + " te ha nombrado Líder del clan " + clanUser + ".\nUtiliza el comando /clanhelp para más información.");
+		}
+	},
+
+	clanoficial: 'oficialclan',
+	oficialclan: function (target, room, user) {
+		var permisionClan = false;
+		var params = target.split(',');
+		if (!params) {
+				return this.sendReply("Usage: /demoteclan member");
+		} 
+		var clanUser = Clans.findClanFromMember(user.name);
+		var clanTarget = Clans.findClanFromMember(params[0]);
+		if (clanUser){
+			var clanUserid = toId(clanUser);
+			var userb = toId(params[0]);
+			var iduserwrit = toId(user.name);
+			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionvalue === 2 && clanTarget === clanUser) permisionClan = true;
+		}
+		if (!permisionClan && !this.can('clans')) return;
+		var userk = Users.getExact(params[0]);
+		if (!userk || !userk.connected) return this.sendReply("Usuario: " + params[0] + " no existe o no está disponible.");
+		if (clanTarget){
+			var clanId = toId(clanTarget);
+			var userId = toId(params[0]);
+			if (Clans.authMember(clanId, userId) === 2 && !this.can('clans')) return false;
+		}
+		if (!Clans.addOficial(params[0]))
+			this.sendReply("El usuario no existe, no pertenece a ningún clan o ya era oficial de su clan.");
+		else {
+			this.sendReply("Usuario: " + userk.name + " nombrado correctamente oficial del clan " + clanTarget + ".");
+			userk.popup(user.name + " te ha nombrado Oficial del clan " + clanTarget + ".\nUtiliza el comando /clanhelp para más información.");
+		}
+	},
+
+	degradarclan: 'declanauth',
+	demoteclan: 'declanauth',
+	declanauth: function (target, room, user) {
+		var permisionClan = false;
+		var params = target.split(',');
+		if (!params) {
+			return this.sendReply("Usage: /demoteclan member");
+		} 
+		var clanUser = Clans.findClanFromMember(user.name);
+		var clanTarget = Clans.findClanFromMember(params[0]);
+		if (clanUser) {
+			var clanUserid = toId(clanUser);
+			var userb = toId(params[0]);
+			var iduserwrit = toId(user.name);
+			var perminsionValue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionValue === 2 && clanTarget === clanUser) permisionClan = true;
+		}
+		if (!permisionClan && !this.can('clans')) return;
+		var userk = Users.getExact(params[0]);
+		if (!clanTarget) {
+			return this.sendReply("El usuario no existe o no pertenece a ningún clan.");
+		} else {
+			var clanId = toId(clanTarget);
+			var userId = toId(params[0]);
+			if (Clans.authMember(clanId, userId) === 2 && !this.can('clans')) return false;
+		}
+		if (!Clans.deleteLeader(params[0])){
+			if (!Clans.deleteOficial(params[0])){
+				this.sendReply("El usuario no poseía ninguna autoridad dentro del clan.");
+			} else {
+				if (!userk || !userk.connected) {
+					this.addModCommand(params[0] + " ha sido degradado de rango en " + clanTarget + " por " + user.name);
+				} else {
+					this.addModCommand(userk.name + " ha sido degradado de rango en " + clanTarget + " por " + user.name);
+				}
+			}
+		} else {
+			var oficialDemote = Clans.deleteOficial(params[0]);
+			if (!userk || !userk.connected) {
+				this.addModCommand(params[0] + " ha sido degradado de rango en " + clanTarget + " por " + user.name);
+			} else {
+				this.addModCommand(userk.name + " ha sido degradado de rango en " + clanTarget + " por " + user.name);
+			}
+		}
+	},
+
+	invitarclan: function (target, room, user) {
+		var permisionClan = false;
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (clanUser) {
+			var clanUserid = toId(clanUser);
+			var iduserwrit = toId(user.name);
+			var permisionValue = Clans.authMember(clanUserid, iduserwrit);
+			if (permisionValue === 1) permisionClan = true;
+			if (permisionValue === 2) permisionClan = true;
+		}
+		if (!permisionClan) return false;
+		var params = target.split(',');
+		if (!params) return this.sendReply("Usage: /invitarclan user");
+		var userk = Users.getExact(params[0]);
+		if (!userk || !userk.connected) return this.sendReply("Usuario: " + params[0] + " no existe o no está disponible.");
+		if (!Clans.addInvite(clanUser, params[0]))
+			this.sendReply("No se pudo invitar al usuario. ¿No existe, ya está invitado o está en otro clan?");
+		else {
+			clanUser = Clans.findClanFromMember(user.name);
+			userk.popup(user.name + " te ha invitado a unirte al clan " + clanUser + ".\nPara unirte al clan escribe en el chat /aceptarclan " + clanUser);
+			this.addModCommand(userk.name + " ha sido invitado a unirse al clan " + clanUser + " por " + user.name);
+		}
+	},
+	aceptarclan: function (target, room, user) {
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (clanUser) {
+			return this.sendReply("Ya perteneces a un clan. No te puedes unir a otro.");
+		}
+		var params = target.split(',');
+		if (!params) return this.sendReply("Usage: /aceptarclan clan");
+		var clanpropio = Clans.getClanName(params[0]);
+		if (!clanpropio) return this.sendReply("El clan no existe o no está disponible.");
+
+		if (!Clans.aceptInvite(params[0], user.name))
+			this.sendReply("El clan no existe o no has sido invitado a este.");
+		else {
+			this.sendReply("Te has unido correctamente al clan" + clanpropio);
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " se ha unido al clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
 		}
 	},
 
@@ -1542,7 +1839,57 @@ var commands = exports.commands = {
 			this.sendReply("Could not remove the user from the clan. Does the clan exist or has the user already been removed from it?");
 		else {
 			this.sendReply("User: " + params[1] + " successfully removed from the clan.");
-			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(params[1]) + " has left clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(params[1]) + " ha abandonado el clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+		}
+	},
+
+	expulsarclan: function (target, room, user) {
+		var permisionClan = false;
+		var params = target.split(',');
+		if (!params){
+				return this.sendReply("Usage: /demoteclan member");
+		} 
+		var clanUser = Clans.findClanFromMember(user.name);
+		var clanTarget = Clans.findClanFromMember(params[0]);
+		if (clanUser){
+			var clanUserid = toId(clanUser);
+			var userb = toId(params[0]);
+			var iduserwrit = toId(user.name);
+			var perminsionValue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionValue === 2 && clanTarget === clanUser) permisionClan = true;
+		}
+		if (!permisionClan && !this.can('clans')) return;
+		var userk = Users.getExact(params[0]);
+		if (!clanTarget){
+			return this.sendReply("El usuario no existe o no pertenece a ningún clan.");
+		} else {
+			var clanId = toId(clanTarget);
+			var userId = toId(params[0]);
+			if (Clans.authMember(clanId, userId) === 2 && !this.can('clans')) return false;
+		}
+		if (!Clans.removeMember(clanTarget, params[0])){
+			this.sendReply("El usuario no pudo ser expulsado del clan.");
+		} else {
+			if (!userk || !userk.connected) {
+				this.addModCommand(params[0] + " ha sido expulsado del clan " + clanTarget + " por " + user.name);
+			} else {
+				this.addModCommand(userk.name + " ha sido expulsado del clan " + clanTarget + " por " + user.name);
+			}
+		}
+	},
+
+	 salirdelclan: 'abandonarclan',
+	 clanleave: 'abandonarclan',
+	 abandonarclan: function (target, room, user) {
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (!clanUser) {
+			return this.sendReply("No perteneces a ningún clan.");
+		}
+		if (!Clans.removeMember(clanUser, user.name)) {
+			 this.sendReply("Error al intentar salir del clan.");
+		} else {
+			this.sendReply("Has salido del clan" + clanUser);
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " ha abandonado el clan: " + Tools.escapeHTML(Clans.getClanName(clanUser)) + '</div>');
 		}
 	},
 
