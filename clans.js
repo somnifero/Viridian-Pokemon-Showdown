@@ -19,6 +19,14 @@ exports.getClans = function () {
 	return Object.keys(clans).map(function (c) { return clans[c].name; });
 };
 
+exports.getClansList = function () {
+	var returnData = {};
+	for (var g in clans) {
+		returnData[g] = 1;
+	}
+	return returnData;
+};
+
 exports.getClanName = function (clan) {
 	var clanId = toId(clan);
 	return clans[clanId] ? clans[clanId].name : "";
@@ -66,6 +74,27 @@ exports.getProfile = function (clan) {
 		lema: clans[clanId].lema,
 		sala: clans[clanId].sala,
 		medals: clans[clanId].medals,
+	};
+};
+
+exports.getElementalData = function (clan) {
+	var clanId = toId(clan);
+	if (!clans[clanId])
+		return false;
+	if (clans[clanId].wins > 10) {
+		var gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
+	} else {
+		var gxeClan = 0;
+	}
+	return {
+		wins: clans[clanId].wins,
+		losses: clans[clanId].losses,
+		draws: clans[clanId].draws,
+		rating: clans[clanId].rating,
+		gxe: gxeClan,
+		gxeint: Math.floor(gxeClan),
+		ratingName: exports.ratingToName(clans[clanId].rating),
+		sala: clans[clanId].sala
 	};
 };
 
@@ -124,6 +153,48 @@ exports.getMembers = function (clan) {
 	return Object.keys(clans[clanId].members);
 };
 
+exports.getInvitations = function (clan) {
+	var clanId = toId(clan);
+	if (!clans[clanId])
+		return false;
+
+	return Object.keys(clans[clanId].invitations);
+};
+
+exports.getUserDiv = function (user) {
+	var userId = toId(user);
+	var userk = Users.getExact(userId);
+	if (!userk) {
+		return '<strong>' + userId + '</strong>';
+	} else {
+		return '<strong>' + userk.name + '</strong>';
+	}
+};
+
+exports.getAuthMembers = function (clan, authLevel) {
+	var clanId = toId(clan);
+	if (!clans[clanId])
+		return false;
+	var returnMembers = {};
+	var returnCode = "";
+	var totalMembers = 0;
+	var auxVar = 0;
+    for (var c in clans[clanId].members) {
+		if (Clans.authMember(clanId, c) === authLevel || authLevel === "all") {
+			returnMembers[c] = 1;
+			totalMembers += 1;
+		}
+	}
+	for (var m in returnMembers) {
+		auxVar += 1;
+		returnCode += exports.getUserDiv(m);
+		if (auxVar < totalMembers) {
+			returnCode += ", ";
+		}
+	}
+	return returnCode;
+};
+
 exports.authMember = function (clan, member) {
 	var clanId = toId(clan);
 	if (!clans[clanId])
@@ -131,6 +202,7 @@ exports.authMember = function (clan, member) {
 	var userid = toId(member);
 	if (clans[clanId].leaders[userid]) return 2;
 	if (clans[clanId].oficials[userid]) return 1;
+	return false;
 };
 
 exports.getOficials = function (clan) {
@@ -244,6 +316,15 @@ exports.setSala = function (clan, text) {
 		return false;
 	if (text.length > 80) return false;
 	clans[clanId].sala = text;
+	writeClanData();
+	return true;
+};
+
+exports.clearInvitations = function (clan) {
+	var clanId = toId(clan);
+	if (!clans[clanId])
+		return false;
+	clans[clanId].invitations = {};
 	writeClanData();
 	return true;
 };
