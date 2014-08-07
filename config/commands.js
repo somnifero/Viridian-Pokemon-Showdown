@@ -1577,17 +1577,17 @@ var commands = exports.commands = {
 		if (clan.sala === "none") {
 			salaClanSource = 'Aún no establecida.'
 		} else {
-			salaClanSource = '<button name="send" value="/join ' + clan.sala + '" target="_blank">' + clan.sala + '</button>'
+			salaClanSource = '<button name="send" value="/join ' + Tools.escapeHTML(clan.sala) + '" target="_blank">' + Tools.escapeHTML(clan.sala) + '</button>'
 		}
 		var clanTitle = "";
 		if (memberClanProfile){
 			var authValue = Clans.authMember(target, clanMember);
 			if (authValue === 2){
-				clanTitle = clanMember + " - Líder del clan" + clan.compname;
+				clanTitle = clanMember + " - Líder del clan " + clan.compname;
 			} else if (authValue === 1){
-				clanTitle = clanMember + " - Oficial del clan" + clan.compname;
+				clanTitle = clanMember + " - Oficial del clan " + clan.compname;
 			} else {
-				clanTitle = clanMember + " - Miembro del clan" + clan.compname;
+				clanTitle = clanMember + " - Miembro del clan " + clan.compname;
 			}
 		} else {
 			clanTitle = clan.compname;
@@ -1597,7 +1597,7 @@ var commands = exports.commands = {
 			'<h4><center><p> <br />' + Tools.escapeHTML(clanTitle) + '</center></h4><hr width="90%" />' +
 			'<table width="90%" border="0" align="center"><tr><td width="180" rowspan="2"><div align="center"><img src="' + encodeURI(clan.logo) +
 			'" width="160" height="160" /></div></td><td height="64" align="left" valign="middle"><span class="lemaclan">'+ Tools.escapeHTML(clan.lema) + 
-			'</span></td> </tr>  <tr>    <td align="left" valign="middle"><strong>Sala Propia</strong>: ' + Tools.escapeHTML(salaClanSource) + 
+			'</span></td> </tr>  <tr>    <td align="left" valign="middle"><strong>Sala Propia</strong>: ' + salaClanSource + 
 			' <p style="font-style: normal;font-size: 16px;"><strong>Rating</strong>:&nbsp;' + clan.rating +
 			' puntos, ' + clan.gxeint + '% GXE (' + clan.wins + ' Victorias, ' + clan.losses + ' Derrotas, ' + clan.draws + 
 			' Empates) </p> <p style="font-style: normal;font-size: 16px;">' +
