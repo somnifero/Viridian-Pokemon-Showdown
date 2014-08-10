@@ -15,6 +15,31 @@ function writeClanData() {
 	fs.writeFileSync(clanDataFile, JSON.stringify(clans));
 }
 
+function getAvaliableFormats() {
+	var formats = {};
+	formats[0] = "ou";
+	return formats;
+}
+
+exports.getWarFormatName = function (format) {
+	switch (toId(format)) {
+		case 'ou': return 'OU';
+		case 'ubers': return 'Ubers';
+		case 'uu': return 'UU';
+		case 'ru': return 'RU';
+		case 'nu': return 'NU';
+		case 'lc': return 'LC';
+		case 'vgc2014': return 'VGC 2014';
+		case 'smogondoubles': return 'Smogon Doubles';
+		case 'gen5ou': return '[Gen 5] OU';
+		case 'gen4ou': return '[Gen 4] OU';
+		case 'gen3ou': return '[Gen 3] OU';
+		case 'gen2ou': return '[Gen 2] OU';
+		case 'gen1ou': return '[Gen 1] OU';
+	}
+	return false;
+};
+
 exports.getClans = function () {
 	return Object.keys(clans).map(function (c) { return clans[c].name; });
 };
@@ -221,16 +246,19 @@ exports.getLeaders = function (clan) {
 	return Object.keys(clans[clanId].leaders);
 };
 
-exports.getAvailableMembers = function (clan) {
-	var clanId = toId(clan);
-	if (!clans[clanId])
+exports.getAvailableMembers = function (clanA, isClanB) {
+	var clanId = toId(clanA);
+	if (!pendingWars[clanId])
 		return false;
-
+	var avaliableMembers = {};
+	if (!isClanB) {
+		avaliableMembers = pendingWars[clanId].clanAMembers;
+	} else {
+		avaliableMembers = pendingWars[clanId].clanBMembers;
+	}
 	var results = [];
-	for (var m in clans[clanId].members) {
-		var user = Users.getExact(m);
-		if (user && user.connected && user.isClanWarAvailable > Date.now() - (5).minutes())
-			results.push(m);
+	for (var m in avaliableMembers) {
+		results.push(m);
 	}
 
 	return results;
@@ -475,6 +503,7 @@ exports.removeMember = function (clan, user) {
 
 	return true;
 };
+//warsystem
 
 exports.getWars = function () {
 	return Object.keys(pendingWars).map(function (clan) { return [clan, pendingWars[clan.against]]; });
@@ -500,73 +529,280 @@ exports.findWarFromClan = function (clan) {
 	var clanId = toId(clan);
 
 	if (pendingWars[clanId])
-		return [clanId, pendingWars[clanId].against];
+		return clanId;
 	for (var w in pendingWars)
 		if (pendingWars[w].against === clanId)
-			return [w, clanId];
+			return w;
 
 	return false;
 };
 
-exports.startWar = function (clanA, clanB, room) {
+exports.findWarFromRoom = function (room) {
+	var roomId = toId(room);
+	for (var w in pendingWars)
+		if (pendingWars[w].room === roomId)
+			return w;
+
+	return false;
+};
+
+exports.getWarData = function (clanA) {
+	var clanAId = toId(clanA);
+	if (!pendingWars[clanAId])
+		return false;
+		
+	return {
+		against: pendingWars[clanAId].against,
+		format: pendingWars[clanAId].format,
+		warSize: pendingWars[clanAId].warSize,
+		warStyle: pendingWars[clanAId].warStyle,
+		warRound: pendingWars[clanAId].warRound,
+		score: pendingWars[clanAId].score,
+		room: pendingWars[clanAId].room
+	};
+};
+
+exports.getWarParticipants = function (clanA) {
+	var clanAId = toId(clanA);
+	if (!pendingWars[clanAId])
+		return false;
+		
+	return {
+		matchups: pendingWars[clanAId].matchups,
+		clanAMembers: pendingWars[clanAId].clanAMembers,
+		clanBMembers: pendingWars[clanAId].clanBMembers,
+	};
+};
+
+exports.getFreePlaces = function (clanA) {
+	var clanAId = toId(clanA);
+	if (!pendingWars[clanAId])
+		return 0;
+	var membersA = pendingWars[clanAId].warSize; 
+	var membersB = pendingWars[clanAId].warSize;
+	var registeredA = Object.keys(pendingWars[clanAId].clanAMembers);
+	var registeredB = Object.keys(pendingWars[clanAId].clanBMembers);
+	if (registeredA){
+		membersA = pendingWars[clanAId].warSize - registeredA.length
+	}
+	if (registeredB){
+		membersB = pendingWars[clanAId].warSize - registeredB.length
+	}
+	return membersA + membersB;
+};
+
+exports.createWar = function (clanA, clanB, room, format, wSize, style) {
 	var clanAId = toId(clanA);
 	var clanBId = toId(clanB);
-	if (!clans[clanAId] || !clans[clanBId] || exports.findWarFromClan(clanA) || exports.findWarFromClan(clanB))
+	var formatId = toId(format);
+	if (!clans[clanAId] || !clans[clanBId] || exports.findWarFromClan(clanA) || exports.findWarFromClan(clanB) || wSize > 100)
 		return false;
-
-	var clanAMembers = exports.getAvailableMembers(clanA).randomize();
-	var clanBMembers = exports.getAvailableMembers(clanB).randomize();
-	var memberCount = Math.min(clanAMembers.length, clanBMembers.length);
-	if (memberCount < 3)
-		return false;
-
-	var matchups = {};
-	for (var m = 0; m < memberCount; ++m)
-		matchups[toId(clanAMembers[m])] = {from: clanAMembers[m], to: clanBMembers[m]};
-
 	pendingWars[clanAId] = {
 		against: clanBId,
-		matchups: matchups,
+		matchups: {},
+		clanAMembers: {},
+		clanBMembers: {},
+		format: format,
+		warSize: parseInt(wSize),
+		warStyle: parseInt(style),
+		warRound: 0,
 		score: 0,
 		room: room
 	};
+	return clanAId;
+};
 
-	return JSON.parse(JSON.stringify(matchups));
+exports.addWarParticipant = function (clanA, member, isClanB) {
+	var clanAId = toId(clanA);
+	var userId = toId(member);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	if (!isClanB) {
+		pendingWars[clanAId].clanAMembers[userId] = 1;
+	} else {
+		pendingWars[clanAId].clanBMembers[userId] = 1;
+	}
+	return true;
+};
+
+exports.removeWarParticipant = function (clanA, member, isClanB) {
+	var clanAId = toId(clanA);
+	var userId = toId(member);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	if (!isClanB) {
+		delete pendingWars[clanAId].clanAMembers[userId];
+	} else {
+		delete pendingWars[clanAId].clanBMembers[userId];
+	}
+	return true;
+};
+
+exports.dqWarParticipant = function (clanA, member, isClanB) {
+	var clanAId = toId(clanA);
+	var userId = toId(member);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	if (!isClanB) {
+		pendingWars[clanAId].matchups[userId].result = 3;
+	} else {
+		pendingWars[clanAId].matchups[userId].result = 2;
+	}
+	return true;
+};
+
+exports.warSetActiveMatchup = function (clanA, member, batLink) {
+	var clanAId = toId(clanA);
+	var userId = toId(member);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	pendingWars[clanAId].matchups[userId].result = 1;
+	pendingWars[clanAId].matchups[userId].battleLink = batLink;
+	return true;
+};
+
+exports.warSetDrawn = function (clanA, member) {
+	var clanAId = toId(clanA);
+	var userId = toId(member);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	pendingWars[clanAId].matchups[userId].result = 0;
+	return true;
+};
+
+exports.invalidateWarMatchup = function (clanA, member) {
+	var clanAId = toId(clanA);
+	var userId = toId(member);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	pendingWars[clanAId].matchups[userId].result = 0;
+	return true;
+};
+
+exports.replaceWarParticipant = function (clanA, matchup, newMember, isClanB) {
+	var clanAId = toId(clanA);
+	var matchupId = toId(matchup);
+	var userId = toId(newMember);
+	if (!clans[clanAId] || !pendingWars[clanAId])
+		return false;
+	var userA = toId(pendingWars[clanAId].matchups[matchupId].from);
+	var userB = toId(pendingWars[clanAId].matchups[matchupId].to);
+	delete pendingWars[clanAId].matchups[matchupId];
+	if (!isClanB) {
+		pendingWars[clanAId].matchups[userId] = {from: userId, to: userB, battleLink: '', result: 0};
+		delete pendingWars[clanAId].clanAMembers[userA];
+		pendingWars[clanAId].clanAMembers[userId] = 1;
+	} else {
+		pendingWars[clanAId].matchups[userA] = {from: userA, to: userId, battleLink: '', result: 0};
+		delete pendingWars[clanAId].clanBMembers[userB];
+		pendingWars[clanAId].clanBMembers[userId] = 1;
+	}
+	return true;
+};
+
+exports.startWar = function (clanA) {
+	var clanAId = toId(clanA);
+	if (!clans[clanAId])
+		return false;
+	var clanBId = toId(pendingWars[clanAId].against);
+	var clanAMembers = exports.getAvailableMembers(clanA, false).randomize();
+	var clanBMembers = exports.getAvailableMembers(clanA, true).randomize();
+	var memberCount = Math.min(clanAMembers.length, clanBMembers.length);
+	var matchups = {};
+	for (var m = 0; m < memberCount; ++m) {
+		matchups[toId(clanAMembers[m])] = {from: clanAMembers[m], to: clanBMembers[m], battleLink: '', result: 0};
+		
+	}
+	pendingWars[clanAId].matchups = matchups;
+	pendingWars[clanAId].warRound = 1;
+	return true;
 };
 
 exports.endWar = function (clan) {
 	var warringClans = exports.findWarFromClan(clan);
-	if (!warringClans)
+	if (!pendingWars[clan])
 		return false;
 
-	delete pendingWars[warringClans[0]];
+	delete pendingWars[clan];
 	return true;
 };
 
-exports.setWarResult = function (clanA, clanB, result) {
+exports.setWarResult = function (clanA, clanB, scoreA, scoreB) {
 	var clanAId = toId(clanA);
 	var clanBId = toId(clanB);
-	if (!clans[clanAId] || !clans[clanBId] || result < 0 || result > 1)
+	if (!clans[clanAId] || !clans[clanBId])
 		return false;
 
-	if (result === 1) {
-		clans[clanAId].rating += 3;
+	if (scoreA > scoreB) {
+		clans[clanAId].rating += 30;
 		++clans[clanAId].wins;
 		++clans[clanBId].losses;
-	} else if (result === 0) {
-		clans[clanBId].rating += 3;
+	} else if (scoreB > scoreA) {
+		clans[clanBId].rating += 30;
 		++clans[clanAId].losses;
 		++clans[clanBId].wins;
 	} else {
-		clans[clanAId].rating += 1;
-		clans[clanBId].rating += 1;
+		clans[clanAId].rating += 10;
+		clans[clanBId].rating += 10;
 		++clans[clanAId].draws;
 		++clans[clanBId].draws;
 	}
 
 	writeClanData();
 
-	return [clans[clanAId].rating, clans[clanBId].rating];
+	return true;
+};
+
+exports.autoEndWar = function (clanA) {
+	var warId = toId(clanA);
+	if (!pendingWars[warId])
+		return false;
+	var scoreA = 0;
+	var scoreB = 0;
+	for (var b in pendingWars[warId].matchups) {
+		if (pendingWars[warId].matchups[b].result === 2) {
+			++scoreA;
+		} else if (pendingWars[warId].matchups[b].result === 3) {
+			++scoreB;
+		}
+	}
+	var htmlSource = '<hr /><h3><center><font color=green><big>War entre ' + exports.getClanName(warId) + " y " + exports.getClanName(pendingWars[warId].against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + exports.getWarFormatName(pendingWars[warId].format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small><center><br />";
+	var clanDataA = exports.getProfile(warId);
+	var clanDataB = exports.getProfile(pendingWars[warId].against);
+	var matchupsTable = '<table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(clanDataA.logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
+	for (var i in pendingWars[warId].matchups) {
+		var userk = Users.getExact(pendingWars[warId].matchups[i].from);
+		if (!userk) {userk = pendingWars[warId].matchups[i].from;} else {userk = userk.name;}
+		var userf = Users.getExact(pendingWars[warId].matchups[i].to);
+		if (!userf) {userf = pendingWars[warId].matchups[i].to;} else {userf = userf.name;}
+		switch (pendingWars[warId].matchups[i].result) {
+			case 0:
+			matchupsTable += '<tr><td  align="right"><big>' + userk + '</big></td><td>&nbsp;vs&nbsp;</td><td><big align="left">' + userf + "</big></td></tr>";
+			break;
+			case 1:
+			matchupsTable += '<tr><td  align="right"><a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink"><b><big>' + userk + '</big></b></a></td><td>&nbsp;<a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink">vs</a>&nbsp;</td><td><a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink"><b><big align="left">' + userf + "</big></b></a></td></tr>";
+			break;
+			case 2:
+			matchupsTable += '<tr><td  align="right"><font color="green"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="red"><b><big align="left">' + userf + "</big></b></font></td></tr>";
+			break;
+			case 3:
+			matchupsTable += '<tr><td  align="right"><font color="red"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="green"><b><big align="left">' + userf + "</big></b></font></td></tr>";
+			break;
+		}
+	}
+	matchupsTable += '</table></td><td>&nbsp;&nbsp;&nbsp;&nbsp;<img width="100" height="100" src="' + encodeURI(clanDataB.logo) + '" /></td></tr></table><hr /><br><hr /><h2><font color="green"><center>';
+	if (scoreA > scoreB) {
+		matchupsTable += '&iexcl;Felicidades <font color="black">' + exports.getClanName(warId) + '</font>!</center></font></h2><h2><font color="green"><center>&iexcl;Has ganado la war en formato ' + exports.getWarFormatName(pendingWars[warId].format) + ' contra <font color="black">' + exports.getClanName(pendingWars[warId].against) + "</font>!</center></font></h2><hr />";
+	} else if (scoreA < scoreB) {
+		matchupsTable += '&iexcl;Felicidades <font color="black">' + exports.getClanName(pendingWars[warId].against) + '</font>!</center></font></h2><h2><font color="green"><center>&iexcl;Has ganado la war en formato ' + exports.getWarFormatName(pendingWars[warId].format) + ' contra <font color="black">' + exports.getClanName(warId) + "</font>!</center></font></h2><hr />";
+	} else if (scoreA === scoreB) {
+		matchupsTable += '&iexcl;La War en formato ' + exports.getWarFormatName(pendingWars[warId].format) + ' entre <font color="black">' + exports.getClanName(warId) + '</font> y <font color="black">' + exports.getClanName(pendingWars[warId].against) + '</font> ha terminado en Empate!</center></font></h2><hr />';
+	}
+	htmlSource += matchupsTable;
+	Rooms.rooms[toId(pendingWars[warId].room)].addRaw(htmlSource);
+	exports.setWarResult(warId, pendingWars[warId].against, scoreA, scoreB);
+	exports.endWar(warId);
+	return true;
 };
 
 exports.setWarMatchResult = function (userA, userB, result) {
@@ -614,28 +850,13 @@ exports.setWarMatchResult = function (userA, userB, result) {
 };
 
 exports.isWarEnded = function (clan) {
+	var clanId = toId(clan);
 	var warringClans = exports.findWarFromClan(clan);
 	if (!warringClans)
 		return true;
-	var clanId = warringClans[0];
 
 	for (var m in pendingWars[clanId].matchups)
-		if (!pendingWars[clanId].matchups[m].isEnded)
+		if (pendingWars[clanId].matchups[m].result < 2)
 			return false;
-
-	var result = 0.5;
-	if (pendingWars[clanId].score > 0)
-		result = 1;
-	else if (pendingWars[clanId].score < 0)
-		result = 0;
-
-	var oldRatings = [clans[warringClans[0]].rating, clans[warringClans[1]].rating];
-	var newRatings = exports.setWarResult(warringClans[0], warringClans[1], result);
-
-	delete pendingWars[clanId];
-	return {
-		result: result,
-		oldRatings: oldRatings,
-		newRatings: newRatings
-	};
+	return true;
 };
