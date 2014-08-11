@@ -44,12 +44,51 @@ exports.getClans = function () {
 	return Object.keys(clans).map(function (c) { return clans[c].name; });
 };
 
-exports.getClansList = function () {
+exports.getClansList = function (order) {
+	var clanIds = {};
 	var returnData = {};
-	for (var g in clans) {
-		returnData[g] = 1;
+	var clansList =  Object.keys(clans).sort().join(",");
+	clanIds = clansList.split(',');
+	if (toId(order) === 'puntos' || toId(order) === 'rank') {
+		var actualRank = -1;
+		var actualclanId = false;
+		for (var j in clanIds) {
+			for (var f in clanIds) {
+				if (clans[clanIds[f]].rating > actualRank && !returnData[clanIds[f]]) {
+					actualRank = clans[clanIds[f]].rating;
+					actualclanId = clanIds[f];
+				}
+			}
+			if (actualclanId) {
+				returnData[actualclanId] = 1;
+				actualclanId = false;
+				actualRank = -1;
+			}
+		}
+		return returnData;
+	} else if (toId(order) === 'members' || toId(order) === 'miembros') {
+		var actualMembers = -1;
+		var actualclanId = false;
+		for (var j in clanIds) {
+			for (var f in clanIds) {
+				if (exports.getMembers(clanIds[f]).length > actualMembers && !returnData[clanIds[f]]) {
+					actualMembers = exports.getMembers(clanIds[f]).length;
+					actualclanId = clanIds[f];
+				}
+			}
+			if (actualclanId) {
+				returnData[actualclanId] = 1;
+				actualclanId = false;
+				actualMembers = -1;
+			}
+		}
+		return returnData;
+	} else {
+		for (var g in clanIds) {
+			returnData[clanIds[g]] = 1;
+		}
+		return returnData;
 	}
-	return returnData;
 };
 
 exports.getClanName = function (clan) {
@@ -563,6 +602,16 @@ exports.getWarData = function (clanA) {
 		score: pendingWars[clanAId].score,
 		room: pendingWars[clanAId].room
 	};
+};
+
+exports.getPendingWars = function () {
+	if (!pendingWars)
+		return 'No hay ninguna war en curso.';
+	var warsList = '';
+	for (var w in pendingWars) {
+		warsList += '<a class="ilink" href="/' + pendingWars[w].room + '"> War de formato ' + exports.getWarFormatName(pendingWars[w].format) + ' entre los clanes ' + exports.getClanName(w) + ' y ' + exports.getClanName(pendingWars[w].against) + ' en la sala ' + pendingWars[w].room + '</a> <br />';
+	}
+	return warsList;
 };
 
 exports.getWarParticipants = function (clanA) {
