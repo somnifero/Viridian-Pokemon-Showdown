@@ -46,7 +46,8 @@ var jsHintOptions = {
 		"TeamValidator": false,
 		"battleEngineFakeProcess": false,
 		"battleProtoCache": false,
-		"reloadCustomAvatars": false
+		"reloadCustomAvatars": false,
+		"Clans": false
 	}
 };
 
