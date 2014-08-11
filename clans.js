@@ -61,10 +61,11 @@ exports.getRating = function (clan) {
 	var clanId = toId(clan);
 	if (!clans[clanId])
 		return false;
+	var gxeClan;
 	if (clans[clanId].wins > 10) {
-		var gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
+		gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
 	} else {
-		var gxeClan = 0;
+		gxeClan = 0;
 	}
 	return {
 		wins: clans[clanId].wins,
@@ -81,10 +82,11 @@ exports.getProfile = function (clan) {
 	var clanId = toId(clan);
 	if (!clans[clanId])
 		return false;
+	var gxeClan;
 	if (clans[clanId].wins > 10) {
-		var gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
+		gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
 	} else {
-		var gxeClan = 0;
+		gxeClan = 0;
 	}
 	return {
 		wins: clans[clanId].wins,
@@ -106,10 +108,11 @@ exports.getElementalData = function (clan) {
 	var clanId = toId(clan);
 	if (!clans[clanId])
 		return false;
+	var gxeClan;
 	if (clans[clanId].wins > 10) {
-		var gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
+		gxeClan = clans[clanId].wins * 100 / (clans[clanId].wins + clans[clanId].losses);
 	} else {
-		var gxeClan = 0;
+		gxeClan = 0;
 	}
 	return {
 		wins: clans[clanId].wins,
@@ -467,7 +470,7 @@ exports.addInvite = function (clan, user) {
 	if (!clans[clanId] || exports.findClanFromMember(user))
 		return false;
 	if (clans[clanId].invitations[userId]) return false;
-	
+
 	clans[clanId].invitations[userId] = 1;
 	writeClanData();
 
@@ -523,7 +526,7 @@ exports.getWarRoom = function (clan) {
 		return false;
 
 	return pendingWars[warringClans[0]].room;
-}
+};
 
 exports.findWarFromClan = function (clan) {
 	var clanId = toId(clan);
@@ -550,7 +553,7 @@ exports.getWarData = function (clanA) {
 	var clanAId = toId(clanA);
 	if (!pendingWars[clanAId])
 		return false;
-		
+
 	return {
 		against: pendingWars[clanAId].against,
 		format: pendingWars[clanAId].format,
@@ -566,7 +569,7 @@ exports.getWarParticipants = function (clanA) {
 	var clanAId = toId(clanA);
 	if (!pendingWars[clanAId])
 		return false;
-		
+
 	return {
 		matchups: pendingWars[clanAId].matchups,
 		clanAMembers: pendingWars[clanAId].clanAMembers,
@@ -578,15 +581,15 @@ exports.getFreePlaces = function (clanA) {
 	var clanAId = toId(clanA);
 	if (!pendingWars[clanAId])
 		return 0;
-	var membersA = pendingWars[clanAId].warSize; 
+	var membersA = pendingWars[clanAId].warSize;
 	var membersB = pendingWars[clanAId].warSize;
 	var registeredA = Object.keys(pendingWars[clanAId].clanAMembers);
 	var registeredB = Object.keys(pendingWars[clanAId].clanBMembers);
-	if (registeredA){
-		membersA = pendingWars[clanAId].warSize - registeredA.length
+	if (registeredA) {
+		membersA = pendingWars[clanAId].warSize - registeredA.length;
 	}
-	if (registeredB){
-		membersB = pendingWars[clanAId].warSize - registeredB.length
+	if (registeredB) {
+		membersB = pendingWars[clanAId].warSize - registeredB.length;
 	}
 	return membersA + membersB;
 };
@@ -711,7 +714,7 @@ exports.startWar = function (clanA) {
 	var matchups = {};
 	for (var m = 0; m < memberCount; ++m) {
 		matchups[toId(clanAMembers[m])] = {from: clanAMembers[m], to: clanBMembers[m], battleLink: '', result: 0};
-		
+
 	}
 	pendingWars[clanAId].matchups = matchups;
 	pendingWars[clanAId].warRound = 1;
@@ -777,17 +780,17 @@ exports.autoEndWar = function (clanA) {
 		if (!userf) {userf = pendingWars[warId].matchups[i].to;} else {userf = userf.name;}
 		switch (pendingWars[warId].matchups[i].result) {
 			case 0:
-			matchupsTable += '<tr><td  align="right"><big>' + userk + '</big></td><td>&nbsp;vs&nbsp;</td><td><big align="left">' + userf + "</big></td></tr>";
-			break;
+				matchupsTable += '<tr><td  align="right"><big>' + userk + '</big></td><td>&nbsp;vs&nbsp;</td><td><big align="left">' + userf + "</big></td></tr>";
+				break;
 			case 1:
-			matchupsTable += '<tr><td  align="right"><a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink"><b><big>' + userk + '</big></b></a></td><td>&nbsp;<a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink">vs</a>&nbsp;</td><td><a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink"><b><big align="left">' + userf + "</big></b></a></td></tr>";
-			break;
+				matchupsTable += '<tr><td  align="right"><a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink"><b><big>' + userk + '</big></b></a></td><td>&nbsp;<a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink">vs</a>&nbsp;</td><td><a href="' + pendingWars[warId].matchups[i].battleLink + '" room ="' + pendingWars[warId].matchups[i].battleLink + '"class="ilink"><b><big align="left">' + userf + "</big></b></a></td></tr>";
+				break;
 			case 2:
-			matchupsTable += '<tr><td  align="right"><font color="green"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="red"><b><big align="left">' + userf + "</big></b></font></td></tr>";
-			break;
+				matchupsTable += '<tr><td  align="right"><font color="green"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="red"><b><big align="left">' + userf + "</big></b></font></td></tr>";
+				break;
 			case 3:
-			matchupsTable += '<tr><td  align="right"><font color="red"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="green"><b><big align="left">' + userf + "</big></b></font></td></tr>";
-			break;
+				matchupsTable += '<tr><td  align="right"><font color="red"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="green"><b><big align="left">' + userf + "</big></b></font></td></tr>";
+				break;
 		}
 	}
 	matchupsTable += '</table></td><td>&nbsp;&nbsp;&nbsp;&nbsp;<img width="100" height="100" src="' + encodeURI(clanDataB.logo) + '" /></td></tr></table><hr /><br><hr /><h2><font color="green"><center>';
