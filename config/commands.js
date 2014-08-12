@@ -1465,6 +1465,7 @@ var commands = exports.commands = {
 			"/clan (clan/miembro) - Muestra la ficha/perfil de un clan.<br />" +
 			"/miembrosclan (clan/miembro) - muestra los miembros con los que cuenta un clan.<br />" +
 			"/clanauth (clan/miembro) - muestra la jerarquía de miembros de un clan.<br />" +
+			"/warlog (clan/miembro) - muestra las 10 últimas wars de un clan.<br />" +
 			"/invitarclan - Invita a un usuario a unirse al clan. Requiere ser Oficial o Líder del clan.<br />" +
 			"/expulsarclan (miembro) - Expulsa a un miembro del clan. Requiere ser Líder del clan.<br />" +
 			"/aceptarclan (clan) - Acepta una invitación al clan.<br />" +
@@ -1492,7 +1493,8 @@ var commands = exports.commands = {
 			"/settitleclan &lt;clan>&lt;puntos> - Estable un título para el clan.<br />" +
 			"<br />" +
 			"<big><b>Comandos de Wars:</b></big><br /><br />" +
-			"/war &lt;formato>, &lt;tamano>, &lt;clan 1>, &lt;clan 2> - Incia una war ente 2 clanes. Requiere +<br />" +
+			"/war &lt;formato>, &lt;tamano>, &lt;clan 1>, &lt;clan 2> - Incia una war entre 2 clanes. Requiere +<br />" +
+			"/totalwar &lt;formato>, &lt;tamano>, &lt;clan 1>, &lt;clan 2> - Incia una war total entre 2 clanes. Requiere +<br />" +
 			"/endwar - Finaliza una war. Requiere +<br />" +
 			"/vw - Muestra el estado de la war.<br />" +
 			"/jw o /joinwar - Comando para unirse a una war.<br />" +
@@ -2491,6 +2493,32 @@ var commands = exports.commands = {
 			Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha cancelado la War entre los clanes ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '. <br /><hr />');
 
 		}
+	},
+	
+	warlog: function (target, room, user) {
+		var autoclan = false;
+		if (!target) autoclan = true;
+		if (!this.canBroadcast()) return false;
+		var clan = Clans.getRating(target);
+		if (!clan) {
+			target = Clans.findClanFromMember(target);
+			if (target)
+				clan = Clans.getRating(target);
+		}
+		if (!clan && autoclan) {
+			target = Clans.findClanFromMember(user.name);
+			if (target)
+				clan = Clans.getRating(target);
+		}
+		if (!clan) {
+			this.sendReply("El clan especificado no existe o no está disponible.");
+			return;
+		}
+		var f = new Date();
+		var dateWar = f.getDate() + '-' + f.getMonth() + ' ' + f.getHours() + 'h';
+		this.sendReply(
+			"|raw| <center><big><big><b>Ultimas Wars del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + Clans.getWarLogTable(target) + '<br /> Fecha del servidor: ' + dateWar + '</center>'
+		);
 	},
 
 	/*********************************************************
