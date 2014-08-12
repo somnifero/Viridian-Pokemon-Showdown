@@ -1,18 +1,29 @@
 const clanDataFile = './config/clans.json';
+const warLogDataFile = './config/warlog.json';
 
 var fs = require('fs');
 var elo = require('elo-rank')();
 
 if (!fs.existsSync(clanDataFile))
 	fs.writeFileSync(clanDataFile, '{}');
+
+if (!fs.existsSync(warLogDataFile))
+	fs.writeFileSync(warLogDataFile, '{}');
+
 var clans = JSON.parse(fs.readFileSync(clanDataFile).toString());
+var warLog = JSON.parse(fs.readFileSync(warLogDataFile).toString());
 var pendingWars = {};
 
 exports.clans = clans;
+exports.warLog = warLog;
 exports.pendingWars = pendingWars;
 
 function writeClanData() {
 	fs.writeFileSync(clanDataFile, JSON.stringify(clans));
+}
+
+function writeWarLogData() {
+	fs.writeFileSync(warLogDataFile, JSON.stringify(warLog));
 }
 
 function getAvaliableFormats() {
@@ -615,6 +626,76 @@ exports.getPendingWars = function () {
 	return warsList;
 };
 
+exports.getWarLogTable = function (clan) {
+	var exportsTable = '<table border="1" cellspacing="0" cellpadding="3" target="_blank"><tbody><tr target="_blank"><th target="_blank">Fecha</th><th target="_blank">Tier</th><th target="_blank">Rival</th><th target="_blank">Tipo</th><th target="_blank">Resultado</th><th target="_blank">Matchups</th><th target="_blank">Puntos</th><th target="_blank">Rondas</th></tr>';
+	var warLogId = toId(clan);
+	if (!warLog[warLogId]) return '<b>A&uacute;n no se ha registrado ninguna War.</b>';
+	var nWars = warLog[warLogId].nWarsRegistered;
+	var resultName = '';
+	var styleName = '';
+	for (var t = 0; t < nWars; ++t) {
+		exportsTable += '<tr>';
+		resultName = '<font color="green">Victoria</font>';
+		if (warLog[warLogId].warData[nWars - t - 1].scoreB > warLog[warLogId].warData[nWars - t - 1].scoreA) resultName = '<font color="red">Derrota</font>';
+		if (warLog[warLogId].warData[nWars - t - 1].scoreB === warLog[warLogId].warData[nWars - t - 1].scoreA) resultName = '<font color="orange">Empate</font>';
+		styleName = 'Standard';
+		if (parseInt(warLog[warLogId].warData[nWars - t - 1].warStyle) === 2) styleName = 'Total';
+		exportsTable += '<td align="center">' + warLog[warLogId].warData[nWars - t - 1].dateWar + '</td><td align="center">' +
+		exports.getWarFormatName(warLog[warLogId].warData[nWars - t - 1].warFormat) + '</td><td align="center">' +
+		exports.getClanName(warLog[warLogId].warData[nWars - t - 1].against) + '</td><td align="center">' + styleName + '</td>' +
+		'<td align="center">' + resultName + '</td><td align="center">' + warLog[warLogId].warData[nWars - t - 1].scoreA + ' - ' +
+		warLog[warLogId].warData[nWars - t - 1].scoreB + '</td><td align="center">' + warLog[warLogId].warData[nWars - t - 1].addPoints +
+		'</td><td align="center">Ronda ' + warLog[warLogId].warData[nWars - t - 1].warRound + '</td>';
+		
+		exportsTable += '</tr>';
+	}
+	exportsTable += '</tbody></table>';
+	return exportsTable;
+};
+
+exports.logWarData = function (clanA, clanB, scoreA, scoreB, warStyle, warFormat, addPoints, warRound) {
+	var warId = toId(clanA);
+	var f = new Date();
+	var dateWar = f.getDate() + '-' + f.getMonth() + ' ' + f.getHours() + 'h';
+	if (!warLog[warId]) {
+		warLog[warId] = {
+			nWarsRegistered: 0,
+			warData: {}
+		}
+	}
+	if (warLog[warId].nWarsRegistered < 10) {
+		warLog[warId].warData[warLog[warId].nWarsRegistered] = {
+			dateWar: dateWar,
+			against: clanB,
+			scoreA: scoreA,
+			scoreB: scoreB,
+			warStyle: warStyle,
+			warFormat: warFormat,
+			warRound: warRound,
+			addPoints: addPoints
+		};
+		++warLog[warId].nWarsRegistered;
+	} else {
+		var warDataAux = {};
+		for (var t = 1; t < 10; ++t) {
+			warDataAux[t - 1] = warLog[warId].warData[t];
+		}
+		warDataAux[9] = {
+			dateWar: dateWar,
+			against: clanB,
+			scoreA: scoreA,
+			scoreB: scoreB,
+			warStyle: warStyle,
+			warFormat: warFormat,
+			warRound: warRound,
+			addPoints: addPoints
+		};
+		warLog[warId].warData = warDataAux;
+	}
+	writeWarLogData();
+	return true;
+};
+
 exports.getWarParticipants = function (clanA) {
 	var clanAId = toId(clanA);
 	if (!pendingWars[clanAId])
@@ -790,28 +871,35 @@ exports.setWarResult = function (clanA, clanB, scoreA, scoreB, warStyle, warSize
 	if (!clans[clanAId] || !clans[clanBId])
 		return false;
 	var winScore = 30; var loseScore = 0; var tieScore = 10;
+	var addPoints = {};
 	if (warStyle === 2) winScore = 50;
 
 	if (scoreA > scoreB) {
 		clans[clanAId].rating += winScore;
 		clans[clanBId].rating += loseScore;
+		addPoints['A'] = winScore;
+		addPoints['B'] = loseScore;
 		++clans[clanAId].wins;
 		++clans[clanBId].losses;
 	} else if (scoreB > scoreA) {
 		clans[clanBId].rating += winScore;
 		clans[clanAId].rating += loseScore;
+		addPoints['B'] = winScore;
+		addPoints['A'] = loseScore;
 		++clans[clanAId].losses;
 		++clans[clanBId].wins;
 	} else {
 		clans[clanAId].rating += tieScore;
 		clans[clanBId].rating += tieScore;
+		addPoints['A'] = tieScore;
+		addPoints['B'] = tieScore;
 		++clans[clanAId].draws;
 		++clans[clanBId].draws;
 	}
 
 	writeClanData();
 
-	return true;
+	return addPoints;
 };
 
 exports.newRoundWar = function (clanA) {
@@ -904,6 +992,7 @@ exports.autoEndWar = function (clanA) {
 	var scoreA = 0;
 	var scoreB = 0;
 	var nMatchups = 0;
+	var nByes = 0;
 	for (var b in pendingWars[warId].matchups) {
 		++nMatchups;
 		if (pendingWars[warId].matchups[b].result === 2) {
@@ -913,21 +1002,24 @@ exports.autoEndWar = function (clanA) {
 		}
 	}
 	if (pendingWars[warId].warStyle === 2) {
+		for (var f in pendingWars[warId].byes) {
+			++nByes;
+		}
 		if (scoreA === 0 || scoreB === 0) {
 			if (scoreA === 0) {
 				if (toId(pendingWars[warId].clanWithByes) === warId) {
 					exports.newRoundWar(warId);
 					return;
-				}
+				} 
 				scoreB = pendingWars[warId].warSize;
-				scoreA = pendingWars[warId].warSize - nMatchups;
+				scoreA = pendingWars[warId].warSize - nMatchups - nByes;
 			} else if (scoreB === 0) {
 				if (toId(pendingWars[warId].clanWithByes) === toId(pendingWars[warId].against)) {
 					exports.newRoundWar(warId);
 					return;
 				}
 				scoreA = pendingWars[warId].warSize;
-				scoreB = pendingWars[warId].warSize - nMatchups;
+				scoreB = pendingWars[warId].warSize - nMatchups - nByes;
 			}
 		} else {
 			exports.newRoundWar(warId);
@@ -975,7 +1067,9 @@ exports.autoEndWar = function (clanA) {
 	}
 	htmlSource += matchupsTable;
 	Rooms.rooms[toId(pendingWars[warId].room)].addRaw(htmlSource);
-	exports.setWarResult(warId, pendingWars[warId].against, scoreA, scoreB);
+	var addpoints = exports.setWarResult(warId, pendingWars[warId].against, scoreA, scoreB);
+	exports.logWarData(warId, pendingWars[warId].against, scoreA, scoreB, pendingWars[warId].warStyle, pendingWars[warId].format, addpoints['A'], pendingWars[warId].warRound);
+	exports.logWarData(pendingWars[warId].against, warId, scoreB, scoreA, pendingWars[warId].warStyle, pendingWars[warId].format, addpoints['B'], pendingWars[warId].warRound);
 	exports.endWar(warId);
 	return true;
 };
