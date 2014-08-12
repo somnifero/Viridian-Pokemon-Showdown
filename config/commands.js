@@ -2122,7 +2122,14 @@ var commands = exports.commands = {
 		if (currentWarData.warRound === 0) {
 			this.sendReply('|raw| <hr /><h2><font color="green">' + ' Inscríbanse a la war en formato ' +  Clans.getWarFormatName(currentWarData.format) + ' entre los clanes ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) +  '. Para unirte escribe </font> <font color="red">/joinwar</font> <font color="green">.</font></h2><b><font color="blueviolet">Jugadores por clan:</font></b> ' + currentWarData.warSize + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Clans.getWarFormatName(currentWarData.format) + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la war.</b></font>');
 		} else {
-			var htmlSource = '<hr /><h3><center><font color=green><big>War entre ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + Clans.getWarFormatName(currentWarData.format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small><center><br />";
+			var warType = "";
+			if (currentWarData.warStyle === 2) warType = " total";
+			var htmlSource = '<hr /><h3><center><font color=green><big>War' + warType + ' entre ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + Clans.getWarFormatName(currentWarData.format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small></center><br />";
+			for (var t in currentWarParticipants.byes) {
+				var userFreeBye = Users.getExact(t);
+				if (!userFreeBye) {userFreeBye = t;} else {userFreeBye = userFreeBye.name;}
+				htmlSource += '<center><small><font color=green>' + userFreeBye + ' ha pasado a la siguiente ronda.</font></small></center><br />';
+			}
 			var clanDataA = Clans.getProfile(currentWar);
 			var clanDataB = Clans.getProfile(currentWarData.against);
 			var matchupsTable = '<table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(clanDataA.logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
@@ -2176,6 +2183,28 @@ var commands = exports.commands = {
 		}
 	},
 
+	totalwar: 'wartotal',
+	wartotal: function (target, room, user) {
+		var permisionCreateWar = false;
+		if (user.group === '+' || user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionCreateWar = true;
+		if (!permisionCreateWar  && !this.can('wars')) return false;
+		if (!room.isOfficial) return this.sendReply("Este comando solo puede ser usado en salas Oficiales.");
+		if (Clans.findWarFromRoom(room.id)) return this.sendReply("Ya había una war en curso en esta sala.");
+		var params = target.split(',');
+		if (params.length !== 4) return this.sendReply("Usage: /totalwar formato, tamaño, clanA, clanB");
+		if (!Clans.getWarFormatName(params[0])) return this.sendReply("El formato especificado para la war no es válido.");
+		params[1] = parseInt(params[1]);
+		if (params[1] < 3 || params[1] > 100) return this.sendReply("El tamaño de la war no es válido.");
+
+		if (!Clans.createWar(params[2], params[3], room.id, params[0], params[1], 2)) {
+			this.sendReply("Alguno de los clanes especificados no existía o ya estaba en war.");
+		} else {
+			this.logModCommand(user.name + " ha iniciado una war total entre los clanes " + Clans.getClanName(params[2]) + " y " + Clans.getClanName(params[3]) + " en formato " + Clans.getWarFormatName(params[0]) + ".");
+			Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una War Total en formato ' +  Clans.getWarFormatName(params[0]) + ' entre los clanes ' + Clans.getClanName(params[2]) + " y " + Clans.getClanName(params[3]) +  '. Si deseas unirte escribe </font> <font color="red">/joinwar</font> <font color="green">.</font></h2><b><font color="blueviolet">Jugadores por clan:</font></b> ' + params[1] + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Clans.getWarFormatName(params[0]) + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la war.</b></font>');
+
+		}
+	},
+
 	joinwar: 'jw',
 	jw: function (target, room, user) {
 		var clanUser = Clans.findClanFromMember(user.name);
@@ -2207,8 +2236,10 @@ var commands = exports.commands = {
 				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> se ha unido a la War. Comienza la War!');
 				Clans.startWar(currentWar);
 				//view war status
+				var warType = "";
+				if (currentWarData.warStyle === 2) warType = " total";
 				currentWarParticipants = Clans.getWarParticipants(currentWar);
-				var htmlSource = '<hr /><h3><center><font color=green><big>War entre ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + Clans.getWarFormatName(currentWarData.format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small><center><br />";
+				var htmlSource = '<hr /><h3><center><font color=green><big>War' + warType + ' entre ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + Clans.getWarFormatName(currentWarData.format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small><center><br />";
 				var clanDataA = Clans.getProfile(currentWar);
 				var clanDataB = Clans.getProfile(currentWarData.against);
 				var matchupsTable = '<table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(clanDataA.logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
