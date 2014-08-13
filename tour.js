@@ -370,7 +370,7 @@ var cmds = {
 		this.sendReplyBox('<font size = 2>Sistema de torneos  clásico</font><br />' +
 						'Sistema de torneos clásico. Disponible para las salas, permitiendo a los usuarios con auth (+ % @ # & ~) crearlos y moderarlos.<br />' +
 						'Los comandos son:<br />' +
-						'<ul><li>/tour [formato], [tiempo] minutes - Inicia un torneo. Requiere: + % @ & ~</li>' +
+						'<ul><li>/newtour [formato], [tiempo] minutes - Inicia un torneo. Requiere: + % @ & ~</li>' +
 						'<li>/j - Comando para unirse a los tourneos.</li>' +
 						'<li>/l - comando para abandonar un torneo.</li>' +
 						'<li>/remind - recuerda a los usuarios con batallas pendientes.</li>' +
@@ -383,7 +383,8 @@ var cmds = {
 						'</ul>');
 	},
 	
-	tour: function(target, room, user, connection) {
+	createtour: 'newtour',
+	newtour: function(target, room, user, connection) {
 		if (target == "update" && this.can('hotpatch')) {
 			CommandParser.uncacheTree('./tour.js');
 			tour = require('./tour.js').tour(tour);
@@ -393,9 +394,9 @@ var cmds = {
 		if (room.decision) return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
 		var rid = room.id;
 		if (tour[rid].status != 0) return this.sendReply('Ya hay un torneo en curso.');
-		if (!target) return this.sendReply('El comando correcto es: /tour formato, tamano');
+		if (!target) return this.sendReply('El comando correcto es: /newtour formato, tamano');
 		var targets = tour.splint(target);
-		if (targets.length != 2) return this.sendReply('El comando correcto es: /tour formato, tamano');
+		if (targets.length != 2) return this.sendReply('El comando correcto es: /newtour formato, tamano');
 		var tierMatch = false;
 		var tempTourTier = '';
 		for (var i = 0; i < tour.tiers.length; i++) {
@@ -407,7 +408,7 @@ var cmds = {
 		if (!tierMatch) return this.sendReply('Por favor utiliza uno de los siguientes formatos: ' + tour.tiers.join(','));
 		if (targets[1].split('minut').length) {
 			targets[1] = parseInt(targets[1]);
-			if (isNaN(targets[1]) || !targets[1]) return this.sendReply('/tour formato, NUMERO minutes');
+			if (isNaN(targets[1]) || !targets[1]) return this.sendReply('/newtour formato, NUMERO minutes');
 			targets[1] = Math.ceil(targets[1]);
 			if (targets[1] < 0) return this.sendReply('Por que programar este torneo para el pasado?');
 			tour.timers[rid] = {
@@ -419,7 +420,7 @@ var cmds = {
 		else {
 			targets[1] = parseInt(targets[1]);
 		}
-		if (isNaN(targets[1])) return this.sendReply('El comando correcto es: /tour formato, tamano');
+		if (isNaN(targets[1])) return this.sendReply('El comando correcto es: /newtour formato, tamano');
 		if (targets[1] < 3) return this.sendReply('Los torneos deben tener al menos 3 participantes.');
 
 		this.parse('/endpoll');
