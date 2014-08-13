@@ -431,3 +431,5 @@ fs.readFile('./config/ipbans.txt', function (err, data) {
 });
 
 reloadCustomAvatars();
+
+global.tour = new (require('./tour.js').tour)();
