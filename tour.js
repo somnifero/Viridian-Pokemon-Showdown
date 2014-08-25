@@ -286,6 +286,14 @@ exports.tour = function(t) {
 			if (w.length == 1) {
 				//end tour
 				Rooms.rooms[rid].addRaw('<h2><font color="green">Felicidades <font color="black">' + tour.username(w[0]) + '</font>! has ganado el torneo de formato ' + Tools.data.Formats[tour[rid].tier].name + ' !</font></h2>' + '<br><font color="blue"><b>Segundo Lugar:</b></font> ' + tour.username(l[0]) + '<hr />');
+				if (tour[rid].size >= 4 && Rooms.rooms[rid].isOfficial) {
+					var moneyFirst = tour[rid].size * 3;
+					var moneySecond = Math.floor(moneyFirst / 2);
+					Shop.giveMoney(tour.username(w[0]), moneyFirst);
+					Shop.giveMoney(tour.username(l[0]), moneySecond);
+					Rooms.rooms[rid].addRaw(tour.username(w[0]) + ' ha recibido ' + moneyFirst + ' pd por ganar el torneo!');
+					Rooms.rooms[rid].addRaw(tour.username(l[0]) + ' ha recibido ' + moneySecond + ' pd por quedar segundo!');
+				}
 				tour[rid].status = 0;
 			} else {
 				var html = '<hr /><h3><font color="green">Ronda '+ tour[rid].roundNum +'!</font></h3><font color="blue"><b>FORMATO:</b></font> ' + Tools.data.Formats[tour[rid].tier].name + "<hr /><center> <small><font color=red>Rojo</font> = descalificado, <font color=\"green\">Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small>";
@@ -927,29 +935,34 @@ var cmds = {
 		var votes = Object.keys(tour[room.id].answers).length;
 		this.logModCommand(user.name + ' ha cancelado la encuesta.');
 		if (!votes) {
-					tour[room.id].question = undefined;
-					tour[room.id].answerList = new Array();
-					tour[room.id].answers = new Object();
-					return room.addRaw("<h3>La encuesta fue cancelada debido a que nadie ha participado hasta ahora.</h3>");
-				} else {
-					var options = new Object();
-					var obj = tour[room.id];
-					for (var i in obj.answerList) options[obj.answerList[i]] = 0;
-					for (var i in obj.answers) options[obj.answers[i]]++;
-					var sortable = new Array();
-					for (var i in options) sortable.push([i, options[i]]);
-					sortable.sort(function(a, b) {return a[1] - b[1]});
-					var html = "";
-					for (var i = sortable.length - 1; i > -1; i--) {
-							var option = sortable[i][0];
-							var value = sortable[i][1];
-							html += "&bull; " + option + " - " + Math.floor(value / votes * 100) + "% (" + value + ")<br />";
+			tour[room.id].question = undefined;
+			tour[room.id].answerList = new Array();
+			tour[room.id].answers = new Object();
+			return room.addRaw("<h3>La encuesta fue cancelada debido a que nadie ha participado hasta ahora.</h3>");
+		} else {
+			var options = new Object();
+			var obj = tour[room.id];
+			for (var i in obj.answerList) options[obj.answerList[i]] = 0;
+			for (var i in obj.answers) options[obj.answers[i]]++;
+			var sortable = new Array();
+			for (var i in options) sortable.push([i, options[i]]);
+			sortable.sort(function(a, b) {return a[1] - b[1]});
+			var html = "";
+			var topAnswer  = false;
+			for (var i = sortable.length - 1; i > -1; i--) {
+					var option = sortable[i][0];
+					var value = sortable[i][1];
+					if (!topAnswer) topAnswer = option;
+					if (value > 0) {
+						html += "&bull; " + option + " - " + Math.floor(value / votes * 100) + "% (" + value + ")<br />";
 					}
-					room.addRaw('<div class="infobox"><h2>Resultados de "' + obj.question + '"</h2><hr />' + html + '</div>');
-					tour[room.id].question = undefined;
-					tour[room.id].answerList = new Array();
-					tour[room.id].answers = new Object();
-				}
+			}
+			room.addRaw('<div class="infobox"><h2>Resultados de "' + obj.question + '"</h2><hr />' + html + '</div>');
+			tour[room.id].topOption = topAnswer;
+			tour[room.id].question = undefined;
+			tour[room.id].answerList = new Array();
+			tour[room.id].answers = new Object();
+		}
 	},
 
 	pollremind: 'pr',
