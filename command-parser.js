@@ -135,7 +135,8 @@ function canTalk(user, room, connection, message) {
 				}
 			}
 		}
-
+		
+		if (!Bot.parse.processChatData(user, room, connection, message)) return false;
 		if (Config.chatFilter) {
 			return Config.chatFilter(user, room, connection, message);
 		}
