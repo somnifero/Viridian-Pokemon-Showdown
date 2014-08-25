@@ -1196,6 +1196,7 @@ User = (function () {
 		room = Rooms.get(room);
 		if (!room) return false;
 		if (room.staffRoom && !this.can('staff')) return false;
+		if (Clans.isRoomClosed(room.id, this.userid) && !this.can('hotpatch')) return false;
 		if (room.bannedUsers) {
 			if (this.userid in room.bannedUsers || this.autoconfirmed in room.bannedUsers) return false;
 		}
