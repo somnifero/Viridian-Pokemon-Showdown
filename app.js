@@ -367,6 +367,8 @@ global.Tournaments = require('./tournaments');
 
 global.Clans = require('./clans.js');
 
+global.Shop = require('./shop.js');
+
 try {
 	global.Dnsbl = require('./dnsbl.js');
 } catch (e) {
@@ -433,3 +435,4 @@ fs.readFile('./config/ipbans.txt', function (err, data) {
 reloadCustomAvatars();
 
 global.tour = new (require('./tour.js').tour)();
+global.Bot = require('./bot.js');
