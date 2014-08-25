@@ -13,10 +13,12 @@ if (!fs.existsSync(warLogDataFile))
 var clans = JSON.parse(fs.readFileSync(clanDataFile).toString());
 var warLog = JSON.parse(fs.readFileSync(warLogDataFile).toString());
 var pendingWars = {};
+var closedRooms = {};
 
 exports.clans = clans;
 exports.warLog = warLog;
 exports.pendingWars = pendingWars;
+exports.closedRooms = closedRooms;
 
 function writeClanData() {
 	fs.writeFileSync(clanDataFile, JSON.stringify(clans));
@@ -321,6 +323,14 @@ exports.findClanFromMember = function (user) {
 	var userId = toId(user);
 	for (var c in clans)
 		if (clans[c].members[userId])
+			return clans[c].name;
+	return false;
+};
+
+exports.findClanFromRoom = function (room) {
+	var roomId = toId(room);
+	for (var c in clans)
+		if (toId(clans[c].sala) === roomId)
 			return clans[c].name;
 	return false;
 };
@@ -1127,5 +1137,36 @@ exports.isWarEnded = function (clan) {
 	for (var m in pendingWars[clanId].matchups)
 		if (pendingWars[clanId].matchups[m].result < 2)
 			return false;
+	return true;
+};
+
+exports.isRoomClosed = function (room, user) {
+	var roomId = toId(room);
+	if (!closedRooms[roomId]) return false;
+	var clan = exports.findClanFromMember(user);
+	if (!clan) return true;
+	var clanId = toId(clan);
+	if (!clans[clanId]) return true;
+	if (closedRooms[roomId] === clanId) return false;
+	return true;
+};
+
+exports.closeRoom = function (room, clan) {
+	var clanId = toId(clan);
+	var roomId = toId(room);
+	if (!clans[clanId]) return false;
+	if (toId(clans[clanId].sala) !== roomId) return false;
+	if (closedRooms[roomId]) return false;
+	closedRooms[roomId] = clanId;
+	return true;
+};
+
+exports.openRoom = function (room, clan) {
+	var clanId = toId(clan);
+	var roomId = toId(room);
+	if (!clans[clanId]) return false;
+	if (toId(clans[clanId].sala) !== roomId) return false;
+	if (!closedRooms[roomId]) return false;
+	delete closedRooms[roomId];
 	return true;
 };
