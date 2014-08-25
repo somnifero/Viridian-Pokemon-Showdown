@@ -1334,6 +1334,20 @@ var commands = exports.commands = {
 
 		this.sendReply('|raw|<img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="' + toId(targets[1]) + '" height="' + toId(targets[2]) + '" />');
 	},
+	
+	postimage: 'image',
+	image: function (target, room, user) {
+		if (!target) return this.sendReply('Usage: /image link, size');
+		if (!this.can('ban', room)) return false;
+		if (!this.canBroadcast()) return;
+
+		var targets = target.split(',');
+		if (targets.length != 2) {
+			return this.sendReply('|raw|<center><img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="50%"/></center>');
+		}
+		if (parseInt(targets[1]) <= 0 || parseInt(targets[1]) > 100) return this.parse('Usage: /image link, size (1-100)');
+		this.sendReply('|raw|<center><img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="' + toId(targets[1]) + '%"/></center>');
+	},
 
 	htmlbox: function (target, room, user) {
 		if (!target) return this.parse('/help htmlbox');
@@ -1479,6 +1493,9 @@ var commands = exports.commands = {
 			"/demoteclan (miembro) - Borra a un miembro del staff del clan. Requiere ser Líder del clan y ~ para demotear a un Líder.<br />" +
 			"/lemaclan (lema) - Establece el Lema del clan. Requiere ser líder del clan.<br />" +
 			"/logoclan (logo) - Establece el Logotipo del clan. Requiere ser líder del clan.<br />" +
+			"/closeclanroom - Bloquea una sala de clan a todos los que no sean miembros de dicho clan, salvo administradores.<br />" +
+			"/openclanroom - Elimina el bloqueo del comando /closeclanroom.<br />" +
+			"/rk o /roomkick - Expulsa a un usuario de una sala. Requiere @ o superior.<br />" +
 			"<br />" +
 			"<big><b>Comandos de Administración:</b></big><br /><br />" +
 			"/createclan &lt;name> - Crea un clan.<br />" +
@@ -2519,6 +2536,75 @@ var commands = exports.commands = {
 		this.sendReply(
 			"|raw| <center><big><big><b>Ultimas Wars del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + Clans.getWarLogTable(target) + '<br /> Fecha del servidor: ' + dateWar + '</center>'
 		);
+	},
+	
+	closeclanroom: function (target, room, user) {
+		var permisionClan = false;
+		var clanRoom = Clans.findClanFromRoom(room.id);
+		if (!clanRoom) return this.sendReply("Esta no es una sala de Clan.");
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (clanUser && toId(clanRoom) === toId(clanUser)) {
+			var clanUserid = toId(clanUser);
+			var iduserwrit = toId(user.name);
+			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionvalue === 2) permisionClan = true;
+			
+		} 
+		if (!permisionClan && !this.can('clans')) return false;
+		if (!Clans.closeRoom(room.id, clanRoom))
+			this.sendReply("Error al intentar cerrar la sala. Es posible que ya esté cerrada.");
+		else {
+			this.addModCommand("Esta sala ha sido cerrada a quienes no sean miembros de " + clanRoom + " por " + user.name);
+		}
+	},
+	
+	openclanroom: function (target, room, user) {
+		var permisionClan = false;
+		var clanRoom = Clans.findClanFromRoom(room.id);
+		if (!clanRoom) return this.sendReply("Esta no es una sala de Clan.");
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (clanUser && toId(clanRoom) === toId(clanUser)) {
+			var clanUserid = toId(clanUser);
+			var iduserwrit = toId(user.name);
+			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionvalue === 2) permisionClan = true;
+			
+		} 
+		if (!permisionClan && !this.can('clans')) return false;
+		if (!Clans.openRoom(room.id, clanRoom))
+			this.sendReply("Error al intentar abrir la sala. Es posible que ya esté abierta.");
+		else {
+			this.addModCommand("Esta sala ha sido abierta a todos los usuarios por " + user.name);
+		}
+	},
+	
+	rk: 'roomkick',
+	roomkick: function (target, room, user, connection) {
+		if (!target) return this.sendReply("Usage: /roomkick user");
+		if (user.locked || user.mutedRooms[room.id]) return this.sendReply("You cannot do this while unable to talk.");
+		target = this.splitTarget(target, true);
+		var targetUser = this.targetUser;
+		var name = this.targetUsername;
+		var userid = toId(name);
+		if (!userid || !targetUser) return this.sendReply("User '" + name + "' does not exist.");
+		if (!this.can('ban', targetUser, room)) return false;
+		if (!Rooms.rooms[room.id].users[targetUser.userid]) {
+			return this.sendReply("User " + this.targetUsername + " is not in the room " + room.id + ".");
+		}
+		this.addModCommand("" + targetUser.name + " was kicked from room " + room.id + " by " + user.name + "." + (target ? " (" + target + ")" : ""));
+		this.add('|unlink|' + this.getLastIdOf(targetUser));
+		targetUser.leaveRoom(room.id);
+	},
+	
+	kickall: function (target, room, user, connection) {
+		if (user.locked || user.mutedRooms[room.id]) return this.sendReply("You cannot do this while unable to talk.");
+		if (!this.can('makeroom')) return false;
+		var targetUser;
+		for (var f in Rooms.rooms[room.id].users) {
+			targetUser = Users.getExact(Rooms.rooms[room.id].users[f]);
+			if (toId(targetUser.name) !== toId(user.name)) targetUser.leaveRoom(room.id);
+		}
+		this.addModCommand("" + user.name + " has kicked all users from room " + room.id + '.');
 	},
 
 	/*********************************************************
