@@ -661,6 +661,12 @@ var BattleRoom = (function () {
 		}
 
 		if (this.rated) {
+			//shop
+			var moneyWinner = 4;
+			if (toId(this.format) === 'ou') moneyWinner = 8;
+			Shop.giveMoney(winner, moneyWinner);
+			this.push('|raw| ' + winner + ' ha recibido ' + moneyWinner + ' pd por ganar.');
+			//end shop
 			var winnerid = toId(winner);
 			var rated = this.rated;
 			this.rated = false;
