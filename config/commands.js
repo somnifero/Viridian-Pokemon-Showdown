@@ -1321,20 +1321,8 @@ var commands = exports.commands = {
 			this.sendReply("You are now receiving lobby chat.");
 		}
 	},
-
-	showimage: function (target, room, user) {
-		if (!target) return this.parse('/help showimage');
-		if (!this.can('declare', room)) return false;
-		if (!this.canBroadcast()) return;
-
-		var targets = target.split(',');
-		if (targets.length != 3) {
-			return this.parse('/help showimage');
-		}
-
-		this.sendReply('|raw|<img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="' + toId(targets[1]) + '" height="' + toId(targets[2]) + '" />');
-	},
 	
+	showimage: 'image',
 	postimage: 'image',
 	image: function (target, room, user) {
 		if (!target) return this.sendReply('Usage: /image link, size');
