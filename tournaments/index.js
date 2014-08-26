@@ -881,11 +881,11 @@ CommandParser.commands.tournament = function (paramString, room, user) {
 		return this.sendReply("Tournaments disabled.");
 	} else if (cmd === 'create' || cmd === 'new') {
 		if (room.toursEnabled) {
-			if (!user.can('tournaments', room)) {
+			if (!user.can('tournaments', room)  && !user.can('staff')) {
 				return this.sendReply(cmd + " -  Access denied.");
 			}
 		} else {
-			if (!user.can('tournamentsmanagement', room)) {
+			if (!user.can('tournamentsmanagement', room)  && !user.can('staff')) {
 				return this.sendReply("Tournaments are disabled in this room (" + room.id + ").");
 			}
 		}
@@ -907,11 +907,11 @@ CommandParser.commands.tournament = function (paramString, room, user) {
 
 		if (commands.creation[cmd]) {
 			if (room.toursEnabled) {
-				if (!user.can('tournaments', room)) {
+				if (!user.can('tournaments', room)  && !user.can('staff')) {
 					return this.sendReply(cmd + " -  Access denied.");
 				}
 			} else {
-				if (!user.can('tournamentsmanagement', room)) {
+				if (!user.can('tournamentsmanagement', room)  && !user.can('staff')) {
 					return this.sendReply("Tournaments are disabled in this room (" + room.id + ").");
 				}
 			}
