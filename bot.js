@@ -490,8 +490,8 @@ var commands = {
 		};
 	})(),
 
-	maketournament: function (target, room, user) {
-		if (!this.can('maketournament')) return;
+	maketournament: function (target, room, user, noResource) {
+		if (!this.can('maketournament') && noResource !== 'host') return;
 		if (Tournaments.tournaments[room.id]) return this.sendPm('Ya hay un torneo en esta Sala.');
 
 		var parts = target.split(','),
@@ -576,7 +576,7 @@ var commands = {
 				self.parse('/poll Formato para el siguiente Torneo, ' + Object.keys(Tools.data.Formats).filter(function (f) { return Tools.data.Formats[f].effectType === 'Format'; }).join(", "));
 				setTimeout(function () {
 					self.parse('/endpoll');
-					Bot.commands.maketournament.call(self, (tour[_room.id].topOption + ', 2 minute'), _room, _user);
+					Bot.commands.maketournament.call(self, (tour[_room.id].topOption + ', 2 minute'), _room, _user, 'host');
 				}, 1000 * 60 * 2);
 			}, 1000 * 5);
 		};
