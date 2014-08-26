@@ -716,15 +716,13 @@ Tournament = (function () {
 			if (secondMoney > 1) secondBuck = 'PokeDolares';
 
 			// annouces the winner/runnerUp
-			
+
 			Shop.giveMoney(winner, firstMoney);
 			this.room.add('|raw|<strong>' + Tools.escapeHTML(winner) + '</strong> ha ganado ' + firstMoney + ' ' + firstBuck + ' por ganar el torneo!');
 			if (runnerUp) {
-			Shop.giveMoney(runnerUp, secondMoney);
-			this.room.add('|raw|<strong>' + Tools.escapeHTML(runnerUp) + '</strong> también ha ganado ' + secondMoney + ' ' + secondBuck + ' por quedar en segundo lugar!');
+				Shop.giveMoney(runnerUp, secondMoney);
+				this.room.add('|raw|<strong>' + Tools.escapeHTML(runnerUp) + '</strong> también ha ganado ' + secondMoney + ' ' + secondBuck + ' por quedar en segundo lugar!');
 			}
-			var wid = toId(winner); // winner's userid
-			var rid = toId(runnerUp); // runnerUp's userid
 		}
 		//end shop
 		this.isEnded = true;
