@@ -287,7 +287,7 @@ exports.tour = function(t) {
 				//end tour
 				Rooms.rooms[rid].addRaw('<h2><font color="green">Felicidades <font color="black">' + tour.username(w[0]) + '</font>! has ganado el torneo de formato ' + Tools.data.Formats[tour[rid].tier].name + ' !</font></h2>' + '<br><font color="blue"><b>Segundo Lugar:</b></font> ' + tour.username(l[0]) + '<hr />');
 				if (tour[rid].size >= 4 && Rooms.rooms[rid].isOfficial) {
-					var moneyFirst = tour[rid].size * 3;
+					var moneyFirst = tour[rid].size * 10;
 					var moneySecond = Math.floor(moneyFirst / 2);
 					Shop.giveMoney(tour.username(w[0]), moneyFirst);
 					Shop.giveMoney(tour.username(l[0]), moneySecond);
