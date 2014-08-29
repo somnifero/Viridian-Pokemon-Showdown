@@ -713,9 +713,9 @@ Tournament = (function () {
 			winner = data;
 		}
 		var tourSize = this.generator.users.size;
-		if (this.room.isOfficial && tourSize >= 4) {
-			firstMoney = tourSize * 5;
-			secondMoney = Math.floor((tourSize * 5) / 2);
+		if (this.room.isOfficial && tourSize >= 3) {
+			firstMoney = tourSize * 20;
+			secondMoney = Math.floor((tourSize * 20) / 2);
 			firstBuck = 'PokeDolar';
 			secondBuck = 'PokeDolar';
 			if (firstMoney > 1) firstBuck = 'PokeDolares';
