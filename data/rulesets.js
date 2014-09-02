@@ -281,6 +281,21 @@ exports.BattleFormats = {
 			this.makeRequest('teampreview', 1);
 		}
 	},
+	teampreview2v2: {
+		onStartPriority: -10,
+		onStart: function () {
+			this.add('clearpoke');
+			for (var i = 0; i < this.sides[0].pokemon.length; i++) {
+				this.add('poke', this.sides[0].pokemon[i].side.id, this.sides[0].pokemon[i].details.replace(/(Arceus|Gourgeist|Genesect|Pumpkaboo)(-[a-zA-Z?]+)?/g, '$1-*'));
+			}
+			for (var i = 0; i < this.sides[1].pokemon.length; i++) {
+				this.add('poke', this.sides[1].pokemon[i].side.id, this.sides[1].pokemon[i].details.replace(/(Arceus|Gourgeist|Genesect|Pumpkaboo)(-[a-zA-Z?]+)?/g, '$1-*'));
+			}
+		},
+		onTeamPreview: function () {
+			this.makeRequest('teampreview', 2);
+		}
+	},
 	teampreview: {
 		onStartPriority: -10,
 		onStart: function () {
@@ -375,6 +390,17 @@ exports.BattleFormats = {
 					abilityTable[ability] = 1;
 				}
 			}
+		}
+	},
+	swapclause: {
+		effectType: 'Rule',
+		onStart: function () {
+			this.add('rule', 'Swap Clause: Physical and special categories are swapped');
+		},
+		onModifyMove: function (move) {
+				move.defensiveCategory = ((move.defensiveCategory || this.getCategory(move)) === 'Physical' ? 'Special' : 'Physical');
+				move.category = ((move.category || this.getCategory(move)) === 'Physical' ? 'Special' : 'Physical');
+				this.debug('Defensive Category: ' + move.defensiveCategory);
 		}
 	},
 	ohkoclause: {
