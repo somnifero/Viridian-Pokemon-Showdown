@@ -128,7 +128,7 @@ var parse = {
 
 		this.chatData[user][room].times.push(time);
 
-		if (user.can('staff')) return true; //do not mod staff users
+		if (user.can('staff', room)) return true; //do not mod staff users
 
 		var pointVal = 0;
 		var muteMessage = '';
