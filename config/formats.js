@@ -342,40 +342,36 @@ exports.Formats = [
 	///////////////////////////////////////////////////////////////////
 
 	{
-		name: "Metagamiate",
+		name: "Haxmons",
 		section: "OM of the Month",
 		column: 2,
 
-		ruleset: ['Pokemon', 'Standard', 'Baton Pass Clause', 'Swagger Clause', 'Team Preview'],
-		banlist: ['Gengarite', 'Kangaskhanite', 'Lucarionite', 'Soul Dew',
-			'Arceus', 'Blaziken', 'Darkrai', 'Deoxys', 'Deoxys-Attack', 'Deoxys-Defense', 'Deoxys-Speed', 'Dialga', 'Genesect', 'Giratina',
-			'Giratina-Origin', 'Groudon', 'Kyogre', 'Ho-Oh', 'Kyurem-White', 'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram',
-			'Shaymin-Sky', 'Kyurem-White', 'Xerneas', 'Yveltal', 'Zekrom'
-		],
-		onModifyMove: function(move, pokemon) {
-			if (move.type === 'Normal' && move.id !== 'hiddenpower' && !pokemon.hasAbility(['aerilate', 'pixilate', 'refrigerate'])) {
-				var types = pokemon.getTypes();
-				if (!types[0] || types[0] === '???') return;
-				move.type = types[0];
-				move.isMetagamiate = true;
+		ruleset: ['OU', 'Freeze Clause'],
+		banlist: ["King's Rock", 'Razor Fang'],
+		onModifyMovePriority: -100,
+		onModifyMove: function (move) {
+			if (move.accuracy !== true && move.accuracy < 100) move.accuracy = 0;
+			move.willCrit = true;
+			if (move.secondaries) {
+				for (var i = 0; i < move.secondaries.length; i++) {
+					move.secondaries[i].chance = 100;
+				}
 			}
-		},
-		onBasePowerPriority: 9,
-		onBasePower: function(basePower, attacker, defender, move) {
-			if (!move.isMetagamiate) return;
-			return this.chainModify([0x14CD, 0x1000]);
 		}
 	},
 	{
-		name: "[Gen 4] STABmons",
+		name: "[Gen 3] 1v1",
 		section: "OM of the Month",
 
-		mod: 'gen4',
+		mod: 'gen3',
 		ruleset: ['Pokemon', 'Standard'],
-		banlist: ['Ignore STAB Moves', 'BrightPowder', 'Soul Dew', 'Belly Drum',
-			'Arceus', 'Deoxys', 'Deoxys-Attack', 'Dialga', 'Garchomp', 'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh', 'Kyogre',
-			'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Shaymin-Sky', 'Wobbuffet', 'Wynaut'
-		]
+		banlist: ['Uber', 'Smeargle + Ingrain'],
+		onBegin: function () {
+			this.p1.pokemon = this.p1.pokemon.slice(0, 1);
+			this.p1.pokemonLeft = this.p1.pokemon.length;
+			this.p2.pokemon = this.p2.pokemon.slice(0, 1);
+			this.p2.pokemonLeft = this.p2.pokemon.length;
+		}
 	},
 	{
 		name: "CAP",
@@ -720,10 +716,10 @@ exports.Formats = [
 		],
 	},
 	{
-        name: "Protean Palace",
-        section: "Local Metagames",
-        ruleset: ['Pokemon', 'Standard', 'Team Preview'],
-        banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
+		name: "Protean Palace",
+		section: "Local Metagames",
+		ruleset: ['Pokemon', 'Standard', 'Team Preview'],
+		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
 		onPrepareHit: function (source, target, move) {
 			var type = move.type;
 			if (type && type !== '???' && source.getTypes().join() !== type) {
@@ -733,15 +729,40 @@ exports.Formats = [
 		}
 	},
 	{
-        name: "Season of Sun",
-        section: "Local Metagames",
-        ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
-        banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Sunny Day', 'Hail', 'Rain Dance', 'Sand Storm'],
+		name: "Season of Sun",
+		section: "Local Metagames",
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
+		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Sunny Day', 'Hail', 'Rain Dance', 'Sand Storm'],
 		onSwitchIn: function (pokemon) {
 			if (pokemon.ability in {'drizzle':1, 'drought':1, 'snowwarning':1, 'sandstream':1}) pokemon.ignore['Ability'] = 1;
 			this.setWeather('sunnyday');
 			this.weatherData.duration = 0;
 		},
+	},
+	{
+		name: "Metagamiate",
+		section: "Local Metagames",
+		column: 2,
+
+		ruleset: ['Pokemon', 'Standard', 'Baton Pass Clause', 'Swagger Clause', 'Team Preview'],
+		banlist: ['Gengarite', 'Kangaskhanite', 'Lucarionite', 'Soul Dew',
+			'Arceus', 'Blaziken', 'Darkrai', 'Deoxys', 'Deoxys-Attack', 'Deoxys-Defense', 'Deoxys-Speed', 'Dialga', 'Genesect', 'Giratina',
+			'Giratina-Origin', 'Groudon', 'Kyogre', 'Ho-Oh', 'Kyurem-White', 'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram',
+			'Shaymin-Sky', 'Kyurem-White', 'Xerneas', 'Yveltal', 'Zekrom'
+		],
+		onModifyMove: function(move, pokemon) {
+			if (move.type === 'Normal' && move.id !== 'hiddenpower' && !pokemon.hasAbility(['aerilate', 'pixilate', 'refrigerate'])) {
+				var types = pokemon.getTypes();
+				if (!types[0] || types[0] === '???') return;
+				move.type = types[0];
+				move.isMetagamiate = true;
+			}
+		},
+		onBasePowerPriority: 9,
+		onBasePower: function(basePower, attacker, defender, move) {
+			if (!move.isMetagamiate) return;
+			return this.chainModify([0x14CD, 0x1000]);
+		}
 	},
 	
 	// BW2 Singles
