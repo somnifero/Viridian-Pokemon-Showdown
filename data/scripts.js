@@ -1825,7 +1825,7 @@ exports.BattleScripts = {
 		var pokemon = [];
 		for (var i in this.data.FormatsData) {
 			var template = this.getTemplate(i);
-			if (this.data.FormatsData[i].viableMoves && !this.data.FormatsData[i].isNonstandard && !template.evos.length && (template.forme.substr(0,4) !== 'Mega')) {
+			if (this.data.FormatsData[i].randomBattleMoves && !this.data.FormatsData[i].isNonstandard && !template.evos.length && (template.forme.substr(0,4) !== 'Mega')) {
 				keys.push(i);
 			}
 		}
@@ -1833,7 +1833,7 @@ exports.BattleScripts = {
 
 		// PotD stuff
 		var potd = {};
-		if ('Rule:potd' in this.getFormat().banlistTable) {
+		if ('Rule:potd' in this.getBanlistTable(this.getFormat())) {
 			potd = this.getTemplate(Config.potd);
 		}
 
@@ -1854,7 +1854,9 @@ exports.BattleScripts = {
 			if (tier === 'LC' && nuCount > 1) continue;
 			if ((tier === 'NFE' || tier === 'NU') && nuCount > 1 && Math.random() * 5 > 1) continue;
 			if (tier === 'Uber' && uberCount > 1 && Math.random() * 5 > 1) continue;
-			if (tier === 'CAP') continue;
+
+			// CAPs have 20% the normal rate
+			if (tier === 'CAP' && Math.random() * 5 > 1) continue;
 			// Arceus formes have 1/18 the normal rate each (so Arceus as a whole has a normal rate)
 			if (keys[i].substr(0, 6) === 'arceus' && Math.random() * 18 > 1) continue;
 			// Basculin formes have 1/2 the normal rate each (so Basculin as a whole has a normal rate)
@@ -1865,9 +1867,7 @@ exports.BattleScripts = {
 			if (keys[i].substr(0, 9) === 'gourgeist' && Math.random() * 4 > 1) continue;
 			// Not available on XY
 			if (template.species === 'Pichu-Spiky-eared') continue;
-			
-			
-			
+
 			// Limit 2 of any type
 			var types = template.types;
 			var skip = false;
@@ -1884,9 +1884,9 @@ exports.BattleScripts = {
 				if (i === 1) {
 					template = potd;
 					if (template.species === 'Magikarp') {
-						template.viableMoves = {magikarpsrevenge:1, splash:1, bounce:1};
+						template.randomBattleMoves = ['magikarpsrevenge', 'splash', 'bounce'];
 					} else if (template.species === 'Delibird') {
-						template.viableMoves = {present:1, bestow:1};
+						template.randomBattleMoves = ['present', 'bestow'];
 					}
 				} else if (template.species === potd.species) {
 					continue; // No, thanks, I've already got one
@@ -1894,7 +1894,7 @@ exports.BattleScripts = {
 			}
 
 			var set = this.randomSet(template, i, megaCount);
-
+			if (toId(set.ability) !== 'levitate' && toId(template.types[0]) !== 'flying' && toId(template.types[1]) !== 'flying') continue;
 			// Illusion shouldn't be on the last pokemon of the team
 			if (set.ability === 'Illusion' && pokemonLeft > 4) continue;
 
@@ -1912,9 +1912,7 @@ exports.BattleScripts = {
 			// Limit to one of each species (Species Clause)
 			if (baseFormes[template.baseSpecies]) continue;
 			baseFormes[template.baseSpecies] = 1;
-			
-			//Aerial Rule
-			if (toId(set.ability) !== 'levitate' && toId(template.types[0]) !== 'flying' && toId(template.types[1]) !== 'flying') continue;
+
 			// Okay, the set passes, add it to our team
 			pokemon.push(set);
 
@@ -1946,13 +1944,16 @@ exports.BattleScripts = {
 		var pokemon = [];
 		for (var i in this.data.FormatsData) {
 			var template = this.getTemplate(i);
-			keys.push(i);
+			//!this.data.FormatsData[i].isNonstandard && !template.evos.length
+			if (this.data.FormatsData[i].randomBattleMoves && (template.forme.substr(0,4) !== 'Mega')) {
+				keys.push(i);
+			}
 		}
 		keys = keys.randomize();
 
 		// PotD stuff
 		var potd = {};
-		if ('Rule:potd' in this.getFormat().banlistTable) {
+		if ('Rule:potd' in this.getBanlistTable(this.getFormat())) {
 			potd = this.getTemplate(Config.potd);
 		}
 
@@ -1967,6 +1968,9 @@ exports.BattleScripts = {
 			var template = this.getTemplate(keys[i]);
 			if (!template || !template.name || !template.types) continue;
 			var tier = template.tier;
+			// This tries to limit the amount of Ubers and NUs on one team to promote "fun":
+			// LC Pokemon have a hard limit in place at 2; NFEs/NUs/Ubers are also limited to 2 but have a 20% chance of being added anyway.
+			// LC/NFE/NU Pokemon all share a counter (so having one of each would make the counter 3), while Ubers have a counter of their own.
 			if (tier !== 'LC') continue;
 			// Arceus formes have 1/18 the normal rate each (so Arceus as a whole has a normal rate)
 			if (keys[i].substr(0, 6) === 'arceus' && Math.random() * 18 > 1) continue;
@@ -1995,9 +1999,9 @@ exports.BattleScripts = {
 				if (i === 1) {
 					template = potd;
 					if (template.species === 'Magikarp') {
-						template.viableMoves = {magikarpsrevenge:1, splash:1, bounce:1};
+						template.randomBattleMoves = ['magikarpsrevenge', 'splash', 'bounce'];
 					} else if (template.species === 'Delibird') {
-						template.viableMoves = {present:1, bestow:1};
+						template.randomBattleMoves = ['present', 'bestow'];
 					}
 				} else if (template.species === potd.species) {
 					continue; // No, thanks, I've already got one
@@ -2038,6 +2042,13 @@ exports.BattleScripts = {
 				}
 			}
 			typeComboCount[typeCombo] = 1;
+
+			// Increment Uber/NU and mega counter
+			if (tier === 'Uber') {
+				uberCount++;
+			} else if (tier === 'NU' || tier === 'NFE' || tier === 'LC') {
+				nuCount++;
+			}
 			if (this.getItem(set.item).megaStone) megaCount++;
 
 		}
@@ -2049,7 +2060,7 @@ exports.BattleScripts = {
 		var pokemon = [];
 		for (var i in this.data.FormatsData) {
 			var template = this.getTemplate(i);
-			if (this.data.FormatsData[i].viableMoves && !this.data.FormatsData[i].isNonstandard && !template.evos.length && (template.forme.substr(0,4) !== 'Mega')) {
+			if (this.data.FormatsData[i].randomBattleMoves && !this.data.FormatsData[i].isNonstandard && !template.evos.length && (template.forme.substr(0,4) !== 'Mega')) {
 				keys.push(i);
 			}
 		}
@@ -2057,7 +2068,7 @@ exports.BattleScripts = {
 
 		// PotD stuff
 		var potd = {};
-		if ('Rule:potd' in this.getFormat().banlistTable) {
+		if ('Rule:potd' in this.getBanlistTable(this.getFormat())) {
 			potd = this.getTemplate(Config.potd);
 		}
 
@@ -2072,7 +2083,13 @@ exports.BattleScripts = {
 			var template = this.getTemplate(keys[i]);
 			if (!template || !template.name || !template.types) continue;
 			var tier = template.tier;
+			// This tries to limit the amount of Ubers and NUs on one team to promote "fun":
+			// LC Pokemon have a hard limit in place at 2; NFEs/NUs/Ubers are also limited to 2 but have a 20% chance of being added anyway.
+			// LC/NFE/NU Pokemon all share a counter (so having one of each would make the counter 3), while Ubers have a counter of their own.
 			if (tier !== 'Uber') continue;
+
+			// CAPs have 20% the normal rate
+			//if (tier === 'CAP' && Math.random() * 5 > 1) continue;
 			// Arceus formes have 1/18 the normal rate each (so Arceus as a whole has a normal rate)
 			if (keys[i].substr(0, 6) === 'arceus' && Math.random() * 18 > 1) continue;
 			// Basculin formes have 1/2 the normal rate each (so Basculin as a whole has a normal rate)
@@ -2083,6 +2100,7 @@ exports.BattleScripts = {
 			if (keys[i].substr(0, 9) === 'gourgeist' && Math.random() * 4 > 1) continue;
 			// Not available on XY
 			if (template.species === 'Pichu-Spiky-eared') continue;
+
 			// Limit 2 of any type
 			var types = template.types;
 			var skip = false;
@@ -2099,9 +2117,9 @@ exports.BattleScripts = {
 				if (i === 1) {
 					template = potd;
 					if (template.species === 'Magikarp') {
-						template.viableMoves = {magikarpsrevenge:1, splash:1, bounce:1};
+						template.randomBattleMoves = ['magikarpsrevenge', 'splash', 'bounce'];
 					} else if (template.species === 'Delibird') {
-						template.viableMoves = {present:1, bestow:1};
+						template.randomBattleMoves = ['present', 'bestow'];
 					}
 				} else if (template.species === potd.species) {
 					continue; // No, thanks, I've already got one
@@ -2141,6 +2159,13 @@ exports.BattleScripts = {
 				}
 			}
 			typeComboCount[typeCombo] = 1;
+
+			// Increment Uber/NU and mega counter
+			if (tier === 'Uber') {
+				uberCount++;
+			} else if (tier === 'NU' || tier === 'NFE' || tier === 'LC') {
+				nuCount++;
+			}
 			if (this.getItem(set.item).megaStone) megaCount++;
 
 		}
@@ -2152,13 +2177,16 @@ exports.BattleScripts = {
 		var pokemon = [];
 		for (var i in this.data.FormatsData) {
 			var template = this.getTemplate(i);
-			keys.push(i);
+			//!this.data.FormatsData[i].isNonstandard && !template.evos.length
+			if (this.data.FormatsData[i].randomBattleMoves && (template.forme.substr(0,4) !== 'Mega')) {
+				keys.push(i);
+			}
 		}
 		keys = keys.randomize();
 
 		// PotD stuff
 		var potd = {};
-		if ('Rule:potd' in this.getFormat().banlistTable) {
+		if ('Rule:potd' in this.getBanlistTable(this.getFormat())) {
 			potd = this.getTemplate(Config.potd);
 		}
 
@@ -2173,6 +2201,9 @@ exports.BattleScripts = {
 			var template = this.getTemplate(keys[i]);
 			if (!template || !template.name || !template.types) continue;
 			var tier = template.tier;
+			// This tries to limit the amount of Ubers and NUs on one team to promote "fun":
+			// LC Pokemon have a hard limit in place at 2; NFEs/NUs/Ubers are also limited to 2 but have a 20% chance of being added anyway.
+			// LC/NFE/NU Pokemon all share a counter (so having one of each would make the counter 3), while Ubers have a counter of their own.
 			if (tier !== 'CAP') continue;
 			// Arceus formes have 1/18 the normal rate each (so Arceus as a whole has a normal rate)
 			if (keys[i].substr(0, 6) === 'arceus' && Math.random() * 18 > 1) continue;
@@ -2201,9 +2232,9 @@ exports.BattleScripts = {
 				if (i === 1) {
 					template = potd;
 					if (template.species === 'Magikarp') {
-						template.viableMoves = {magikarpsrevenge:1, splash:1, bounce:1};
+						template.randomBattleMoves = ['magikarpsrevenge', 'splash', 'bounce'];
 					} else if (template.species === 'Delibird') {
-						template.viableMoves = {present:1, bestow:1};
+						template.randomBattleMoves = ['present', 'bestow'];
 					}
 				} else if (template.species === potd.species) {
 					continue; // No, thanks, I've already got one
@@ -2244,6 +2275,14 @@ exports.BattleScripts = {
 			}
 			typeComboCount[typeCombo] = 1;
 
+			// Increment Uber/NU and mega counter
+			if (tier === 'Uber') {
+				uberCount++;
+			} else if (tier === 'NU' || tier === 'NFE' || tier === 'LC') {
+				nuCount++;
+			}
+			if (this.getItem(set.item).megaStone) megaCount++;
+
 		}
 		return pokemon;
 	},
@@ -2253,7 +2292,7 @@ exports.BattleScripts = {
 		var pokemon = [];
 		for (var i in this.data.FormatsData) {
 			var template = this.getTemplate(i);
-			if (this.data.FormatsData[i].viableMoves && !this.data.FormatsData[i].isNonstandard && !template.evos.length && (template.forme.substr(0,4) !== 'Mega')) {
+			if (this.data.FormatsData[i].randomBattleMoves && !this.data.FormatsData[i].isNonstandard && !template.evos.length && (template.forme.substr(0,4) !== 'Mega')) {
 				keys.push(i);
 			}
 		}
@@ -2261,9 +2300,10 @@ exports.BattleScripts = {
 
 		// PotD stuff
 		var potd = {};
-		if ('Rule:potd' in this.getFormat().banlistTable) {
+		if ('Rule:potd' in this.getBanlistTable(this.getFormat())) {
 			potd = this.getTemplate(Config.potd);
 		}
+		
 		var monoType = '';
 		var randomType = Math.floor(Math.random() * 18) + 1;
 		switch (randomType) {
@@ -2322,6 +2362,7 @@ exports.BattleScripts = {
 			default:
 				monoType = 'Water';
 		}
+		
 		var typeCount = {};
 		var typeComboCount = {};
 		var baseFormes = {};
@@ -2358,21 +2399,22 @@ exports.BattleScripts = {
 			var skip = false;
 			for (var t = 0; t < types.length; t++) {
 				if (typeCount[types[t]] > 1 && Math.random() * 5 > 1) {
-					skip = true;
+					skip = false;
 					break;
 				}
 			}
-			if (toId(types[0]) !== toId(monoType) && toId(types[1]) !== toId(monoType)) continue;
 			if (!types) continue;
+			if (skip) continue;
+			if (toId(types[0]) !== toId(monoType) && toId(types[1]) !== toId(monoType)) continue;
 
 			if (potd && potd.name && potd.types) {
 				// The Pokemon of the Day belongs in slot 2
 				if (i === 1) {
 					template = potd;
 					if (template.species === 'Magikarp') {
-						template.viableMoves = {magikarpsrevenge:1, splash:1, bounce:1};
+						template.randomBattleMoves = ['magikarpsrevenge', 'splash', 'bounce'];
 					} else if (template.species === 'Delibird') {
-						template.viableMoves = {present:1, bestow:1};
+						template.randomBattleMoves = ['present', 'bestow'];
 					}
 				} else if (template.species === potd.species) {
 					continue; // No, thanks, I've already got one
@@ -2390,6 +2432,7 @@ exports.BattleScripts = {
 				// Drought and Drizzle don't count towards the type combo limit
 				typeCombo = set.ability;
 			}
+			if (typeCombo in typeComboCount) continue;
 
 			// Limit the number of Megas to one, just like in-game
 			if (this.getItem(set.item).megaStone && megaCount > 0) continue;
