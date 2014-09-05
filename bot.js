@@ -33,7 +33,8 @@ var config = {
 		1: 'warn',
 		2: 'mute',
 		3: 'hourmute',
-		4: 'lock',
+		4: 'hourmute',
+		5: 'lock'
 	},
 	privaterooms: ['staff'],
 	hosting: {},
@@ -88,7 +89,7 @@ function joinServer() {
 }
 
 const ACTION_COOLDOWN = 3 * 1000;
-const FLOOD_MESSAGE_NUM = 4;
+const FLOOD_MESSAGE_NUM = 5;
 const FLOOD_PER_MSG_MIN = 500; // this is the minimum time between messages for legitimate spam. It's used to determine what "flooding" is caused by lag
 const FLOOD_MESSAGE_TIME = 6 * 1000;
 const MIN_CAPS_LENGTH = 18;
@@ -136,8 +137,8 @@ var parse = {
 		//moderation for banned words
 		for (var d in botBannedWords) {
 			if (message.toLowerCase().indexOf(botBannedWords[d]) > -1) {
-				if (pointVal < 4) {
-					pointVal = 4;
+				if (pointVal < 5) {
+					pointVal = 5;
 					muteMessage = ', Su mensaje contiene una frase prohibida';
 					break;
 				}
@@ -348,6 +349,12 @@ var commands = {
 		this.sendReply('Código del Bot actualizado.');
 	},
 	
+	reset: function (target, room, user) {
+		if (!this.can('hotpatch')) return;
+		parse.chatData = {};
+		this.sendReply('Datos de chat reiniciados.');
+	},
+	
 	banword: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
@@ -491,7 +498,7 @@ var commands = {
 	})(),
 
 	maketournament: function (target, room, user, noResource) {
-		if (!this.can('maketournament') && noResource !== 'host') return;
+		if (!this.can('broadcast') && noResource !== 'host') return;
 		if (Tournaments.tournaments[room.id]) return this.sendPm('Ya hay un torneo en esta Sala.');
 
 		var parts = target.split(','),
@@ -503,7 +510,7 @@ var commands = {
 			var time = Number(parts[1].split('minute')[0]);
 
 			this.parse('/tour create ' + parts[0] + ', elimination');
-			this.sendReply('**Teneis ' + time + ' minutos' + parts[1].split('minute')[1] + ' para uniros al torneo.**');
+			this.sendReply('**Teneis ' + time + ' minuto' + parts[1].split('minute')[1] + ' para uniros al torneo.**');
 
 			var loop = function () {
 				setTimeout(function () {
@@ -538,7 +545,7 @@ var commands = {
 		var playerLoop = function () {
 			setTimeout(function () {
 				if (!Tournaments.tournaments[room.id]) return;
-				if (Tournaments.tournaments[room.id].generator.users.size === Number(parts[1])) {
+				if (Tournaments.tournaments[room.id].generator.users.size >= Number(parts[1])) {
 					if (!Tournaments.tournaments[room.id].isTournamentStarted) {
 						self.parse('/tour start');
 						self.parse('/tour autodq 2');
