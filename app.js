@@ -369,6 +369,8 @@ global.Clans = require('./clans.js');
 
 global.Shop = require('./shop.js');
 
+global.League = require('./league.js');
+
 try {
 	global.Dnsbl = require('./dnsbl.js');
 } catch (e) {
