@@ -985,14 +985,12 @@ exports.BattleScripts = {
 			'Technician':1, 'Skill Link':1, 'Iron Fist':1, 'Adaptability':1, 'Hustle':1
 		};
 
-		var damagingMoves = [];
-		var damagingMoveIndex = {};
-		var hasMove = {};
-		var counter = {};
-		var setupType = '';
+		var damagingMoves, damagingMoveIndex, hasMove, counter, setupType;
 
 		var j = 0;
+		hasMove = {};
 		do {
+
 			// Choose next 4 moves from learnset/viable moves and add them to moves list:
 			while (moves.length < 4 && j < moveKeys.length) {
 				var moveid = toId(moveKeys[j]);
@@ -1014,6 +1012,7 @@ exports.BattleScripts = {
 				recoil: 0, inaccurate: 0,
 				physicalsetup: 0, specialsetup: 0, mixedsetup: 0
 			};
+			setupType = '';
 			// Iterate through all moves we've chosen so far and keep track of what they do:
 			for (var k = 0; k < moves.length; k++) {
 				var move = this.getMove(moves[k]);
@@ -2643,12 +2642,9 @@ exports.BattleScripts = {
 			'Technician':1, 'Skill Link':1, 'Iron Fist':1, 'Adaptability':1, 'Hustle':1
 		};
 
-		var damagingMoves = [];
-		var damagingMoveIndex = {};
-		var hasMove = {};
-		var counter = {};
-		var setupType = '';
+		var damagingMoves, damagingMoveIndex, hasMove, counter, setupType;
 
+		hasMove = {};
 		var j = 0;
 		do {
 			// Choose next 4 moves from learnset/viable moves and add them to moves list:
@@ -2672,6 +2668,7 @@ exports.BattleScripts = {
 				recoil: 0, inaccurate: 0,
 				physicalsetup: 0, specialsetup: 0, mixedsetup: 0
 			};
+			setupType = '';
 			// Iterate through all moves we've chosen so far and keep track of what they do:
 			for (var k = 0; k < moves.length; k++) {
 				var move = this.getMove(moves[k]);
