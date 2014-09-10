@@ -9,16 +9,23 @@
  * @license MIT license
  */
 const botBannedWordsDataFile = './config/botbannedwords.json';
+const botBannedUsersDataFile = './config/botbannedusers.json';
 var fs = require('fs');
 
 if (!fs.existsSync(botBannedWordsDataFile))
 	fs.writeFileSync(botBannedWordsDataFile, '{}');
 	
+if (!fs.existsSync(botBannedUsersDataFile))
+	fs.writeFileSync(botBannedUsersDataFile, '{}');
+	
 var botBannedWords = JSON.parse(fs.readFileSync(botBannedWordsDataFile).toString());
+var botBannedUsers = JSON.parse(fs.readFileSync(botBannedUsersDataFile).toString());
 exports.botBannedWords = botBannedWords;
+exports.botBannedUsers = botBannedUsers;
 
 function writeBotData() {
 	fs.writeFileSync(botBannedWordsDataFile, JSON.stringify(botBannedWords));
+	fs.writeFileSync(botBannedUsersDataFile, JSON.stringify(botBannedUsers));
 }
 
 var config = {
@@ -104,6 +111,10 @@ var parse = {
 		if (!room || !room.users) {
 			isPM = true;
 			room = Rooms.rooms['lobby'];
+		}
+		if (botBannedUsers[toId(user.name)] && !user.can('staff')) {
+			CommandParser.parse(('/ban' + ' ' + user.userid + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
+			return false;
 		}
 		if ((user.userid === config.userid() || !room.users[config.userid()]) && !isPM) return true;
 		var botUser = Users.get(config.userid());
@@ -334,8 +345,8 @@ var commands = {
 	},
 	
 	guia: function (target, room, user) {
-		if (!this.can('broadcast')) return this.sendPm('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/3Yy9MN2S');
-		this.sendReply('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/3Yy9MN2S');
+		if (!this.can('broadcast')) return this.sendPm('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
+		this.sendReply('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
 	},
 	
 	say: function (target, room, user) {
@@ -354,7 +365,63 @@ var commands = {
 		parse.chatData = {};
 		this.sendReply('Datos de chat reiniciados.');
 	},
-	
+
+	ab: function (target, room, user) {
+		if (!this.can('rangeban')) return;
+		if (!target) return;
+		var parts = target.split(',');
+		var userId;
+		var bannedList = '';
+		for (var n in parts) {
+			userId = toId(parts[n]);
+			if (botBannedUsers[userId]) {
+			 this.sendPm('En usuario "' + userId + '" ya estaba en la lista negra.');
+			 continue;
+			}
+			bannedList += '"' + userId + '", ';
+			botBannedUsers[userId] = 1;
+		}
+		writeBotData();
+		if (parts.length > 1) {
+			this.sendReply('Los usuarios ' + bannedList + ' se han añadido a la lista negra correctamente.');
+		} else {
+			this.sendReply('El usuario "' + toId(target) + '" se ha añadido a la lista negra correctamente.');
+		}
+	},
+
+	unab: function (target, room, user) {
+		if (!this.can('rangeban')) return;
+		if (!target) return;
+		var parts = target.split(',');
+		var userId;
+		var bannedList = '';
+		for (var n in parts) {
+			userId = toId(parts[n]);
+			if (!botBannedUsers[userId]) {
+			 this.sendPm('En usuario "' + userId + '" no estaba en la lista negra.');
+			 continue;
+			}
+			bannedList += '"' + userId + '", ';
+			delete botBannedUsers[userId];
+		}
+		writeBotData();
+		if (parts.length > 1) {
+			this.sendReply('Los usuarios ' + bannedList + ' han sido eliminados de la lista negra.');
+		} else {
+			this.sendReply('El usuario "' + toId(target) + '" ha sido eliminado de la lista negra.');
+		}
+	},
+
+	vab: function (target, room, user) {
+		if (!this.can('rangeban')) return;
+		var bannedList = '';
+		for (var d in botBannedUsers) {
+			bannedList += d + ', ';
+		}
+		if (bannedList === '') return this.sendPm('Lista negra vacía.');
+		this.sendPm('Usuarios de la Lista negra: ' + bannedList);
+	},
+
 	banword: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
