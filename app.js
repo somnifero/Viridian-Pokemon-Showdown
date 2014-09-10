@@ -437,4 +437,5 @@ fs.readFile('./config/ipbans.txt', function (err, data) {
 reloadCustomAvatars();
 
 global.tour = new (require('./tour.js').tour)();
+global.teamTour = require('./teamtour.js');
 global.Bot = require('./bot.js');
