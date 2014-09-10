@@ -789,7 +789,38 @@ exports.Formats = [
 			return this.chainModify([0x14CD, 0x1000]);
 		}
 	},
-	
+	{
+		name: "Hidden Type",
+		section: "Local Metagames",
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
+		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
+		onPrepareHit: function (source, target, move) {
+			var hiddenType = source.hpType || 'Dark';
+			if (!source.hasType(hiddenType)) {
+				source.addType(hiddenType);
+				this.debug('Added hidden type: ' + hiddenType);
+			}
+			hiddenType = target.hpType || 'Dark';
+			if (!target.hasType(hiddenType)) {
+				target.addType(hiddenType);
+				this.debug('Added hidden type: ' + hiddenType);
+			}
+		},
+		onModifyPriority: function (priority, pokemon) {
+			var hiddenType = pokemon.hpType || 'Dark';
+			if (!pokemon.hasType(hiddenType)) {
+				pokemon.addType(hiddenType);
+				this.debug('Added hidden type: ' + hiddenType);
+			}
+		}
+	},
+	{
+		name: "Same Type Stealth Rock",
+		section: "Local Metagames",
+		mod: 'stsr',
+		ruleset: ['OU']
+	},
+
 	// BW2 Singles
 	///////////////////////////////////////////////////////////////////
 
