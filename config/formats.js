@@ -753,7 +753,6 @@ exports.Formats = [
 	{
 		name: "Metagamiate",
 		section: "Local Metagames",
-		column: 2,
 
 		ruleset: ['Pokemon', 'Standard', 'Baton Pass Clause', 'Swagger Clause', 'Team Preview'],
 		banlist: ['Gengarite', 'Kangaskhanite', 'Lucarionite', 'Soul Dew',
@@ -773,31 +772,6 @@ exports.Formats = [
 		onBasePower: function(basePower, attacker, defender, move) {
 			if (!move.isMetagamiate) return;
 			return this.chainModify([0x14CD, 0x1000]);
-		}
-	},
-	{
-		name: "Hidden Type",
-		section: "Local Metagames",
-		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
-		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
-		onPrepareHit: function (source, target, move) {
-			var hiddenType = source.hpType || 'Dark';
-			if (!source.hasType(hiddenType)) {
-				source.addType(hiddenType);
-				this.debug('Added hidden type: ' + hiddenType);
-			}
-			hiddenType = target.hpType || 'Dark';
-			if (!target.hasType(hiddenType)) {
-				target.addType(hiddenType);
-				this.debug('Added hidden type: ' + hiddenType);
-			}
-		},
-		onModifyPriority: function (priority, pokemon) {
-			var hiddenType = pokemon.hpType || 'Dark';
-			if (!pokemon.hasType(hiddenType)) {
-				pokemon.addType(hiddenType);
-				this.debug('Added hidden type: ' + hiddenType);
-			}
 		}
 	},
 	{
