@@ -1369,6 +1369,18 @@ User = (function () {
 		user.challengesFrom[this.userid] = challenge;
 		this.updateChallenges();
 		user.updateChallenges();
+		//bot
+		if (user.userid === Bot.config.userid()) {
+			var denied = Bot.acceptChallegesDenied(this, format);
+			if (!denied) {
+				user.acceptChallengeFrom(this, false);
+			} else if (denied === 'auth'){
+				user.acceptChallengeFrom(this, true);
+			} else {
+				user.rejectChallengeFrom(this);
+				this.send('|pm|' + Bot.config.group + Bot.config.name + '|' + this.group + this.name +  '|' + denied);
+			}
+		}
 	};
 	User.prototype.cancelChallengeTo = function () {
 		if (!this.challengeTo) return true;
@@ -1403,11 +1415,14 @@ User = (function () {
 			}
 			return false;
 		}
-		Rooms.global.startBattle(this, user, user.challengeTo.format, false, this.team, user.challengeTo.team);
+		var battleRoom = Rooms.global.startBattle(this, user, user.challengeTo.format, false, this.team, user.challengeTo.team);
 		delete this.challengesFrom[user.userid];
 		user.challengeTo = null;
 		this.updateChallenges();
 		user.updateChallenges();
+		if (this.userid === Bot.config.userid()) {
+			Bot.parse.setAutomatedBattle(battleRoom, botData, user);
+		}
 		return true;
 	};
 	// chatQueue should be an array, but you know about mutables in prototypes...

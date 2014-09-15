@@ -23,6 +23,16 @@ var botBannedUsers = JSON.parse(fs.readFileSync(botBannedUsersDataFile).toString
 exports.botBannedWords = botBannedWords;
 exports.botBannedUsers = botBannedUsers;
 
+var battleInProgress = {};
+exports.inBattle = false;
+exports.acceptChallegesDenied = function (user, format) {
+	if (!(format in {'challengecupmetronome':1, 'randombattle':1, 'randomoumonotype':1, 'randominversebattle':1,'randomskybattle':1, 'randomubers':1, 'randomlc':1, 'randomcap':1})) return 'Debido a mi configuración actual, no acepto retos de formato ' + format;
+	if (battleInProgress[toId(user.name)])  return 'Ya estoy en una batalla contigo, espera a que termine para retarme de nuevo.';
+	if (user.can('broadcast')) return 'auth';
+	if (exports.inBattle) return 'Estoy ocupado en otra batalla, retame cuando esta termine.';
+	return false;
+};
+
 function writeBotData() {
 	fs.writeFileSync(botBannedWordsDataFile, JSON.stringify(botBannedWords));
 	fs.writeFileSync(botBannedUsersDataFile, JSON.stringify(botBannedUsers));
@@ -212,7 +222,7 @@ var parse = {
 	updateSeen: function (user, type, detail) {
 		user = toId(user);
 		type = toId(type);
-		if (type in {j: 1, l: 1, c: 1} && (config.rooms.indexOf(toId(detail)) === -1 || config.privaterooms.indexOf(toId(detail)) > -1)) return;
+		if (config.privaterooms.indexOf(toId(detail)) > -1) return;
 		var time = Date.now();
 		if (!this.chatData[user]) this.chatData[user] = {
 			zeroTol: 0,
@@ -323,6 +333,49 @@ var parse = {
 		}
 		if (!times.length) times.push('0 segundos');
 		return times.join(', ');
+	},
+	
+	setAutomatedBattle: function (battleRoom, forced, user) {
+		if (!battleRoom) return;
+		if (!forced) exports.inBattle = true;
+		battleInProgress[toId(user.name)] = 1;
+		var botUser = Users.get(config.userid());
+		battleRoom.requestKickInactive(botUser, botUser.can('timer'));
+		battleRoom.modchat = '+';
+		var p1 = battleRoom.p1.userid;
+		var p2 = battleRoom.p2.userid;
+		var turnData;
+		if (battleRoom.p2.userid === config.userid()) player = 'p2';
+		var loop = function () {
+			setTimeout(function () {
+				if (!battleRoom) return;
+				if (!battleRoom.users[p1] || !battleRoom.users[p2]) {
+					battleRoom.push('Batalla interrumpida por desconexión del retador.');
+					battleRoom.forfeit(botUser, false, 0);
+					botUser.leaveRoom(battleRoom.id);
+					if (!forced) exports.inBattle = false;
+					delete battleInProgress[toId(user.name)];
+					return;
+				}
+				if (battleRoom.battle.ended) {
+					botUser.leaveRoom(battleRoom.id);
+					if (!forced) exports.inBattle = false;
+					delete battleInProgress[toId(user.name)];
+					return;
+				}
+				turnData = JSON.parse(battleRoom.battle.requests[config.userid()]);
+				if (turnData.forceSwitch) {
+					for (var n = 0; n < 7; ++n) {
+						battleRoom.decision(botUser, "choose", "switch " + n);
+					}
+					battleRoom.decision(botUser, "choose", "move " + Math.floor(Math.random() * 5));
+				} else if (turnData.active) {
+					battleRoom.decision(botUser, "choose", "move " + Math.floor(Math.random() * 5));
+				}
+				loop();
+			}, 1000 * 5);
+		};
+		loop();
 	}
 
 };
@@ -380,6 +433,7 @@ var commands = {
 			}
 			bannedList += '"' + userId + '", ';
 			botBannedUsers[userId] = 1;
+			CommandParser.parse(('/ban' + ' ' + userId + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
 		}
 		writeBotData();
 		if (parts.length > 1) {
