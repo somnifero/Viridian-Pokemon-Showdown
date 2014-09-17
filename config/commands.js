@@ -2836,7 +2836,7 @@ var commands = exports.commands = {
 		if (!params || params.length !== 2) return this.sendReply("Usage: /donate usuario, pds");
 		
 		var pds = parseInt(params[1]);
-		if (pds <= 0) return this.sendReply("La cantidad no es valida.");
+		if (!pds || pds <= 0) return this.sendReply("La cantidad no es valida.");
 		var userh = Users.getExact(params[0]);
 		if (!userh || !userh.connected) return this.sendReply("El usuario no existe o no está disponible");
 		var userName = userh.name;
