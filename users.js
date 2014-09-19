@@ -1405,7 +1405,7 @@ User = (function () {
 		}
 		this.updateChallenges();
 	};
-	User.prototype.acceptChallengeFrom = function (user) {
+	User.prototype.acceptChallengeFrom = function (user, botData) {
 		var userid = toId(user);
 		user = getUser(user);
 		if (!user || !user.challengeTo || user.challengeTo.to !== this.userid) {
