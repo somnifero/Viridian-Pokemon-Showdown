@@ -26,7 +26,7 @@ exports.botBannedUsers = botBannedUsers;
 var battleInProgress = {};
 exports.inBattle = false;
 exports.acceptChallegesDenied = function (user, format) {
-	if (!(format in {'challengecupmetronome':1, 'randombattle':1, 'randomoumonotype':1, 'randominversebattle':1,'randomskybattle':1, 'randomubers':1, 'randomlc':1, 'randomcap':1})) return 'Debido a mi configuración actual, no acepto retos de formato ' + format;
+	if (!(format in {'challengecupmetronome':1, 'randombattle':1, 'randomoumonotype':1, 'randominversebattle':1,'randomskybattle':1, 'randomubers':1, 'randomlc':1, 'randomcap':1, 'randomhaxmons':1})) return 'Debido a mi configuración actual, no acepto retos de formato ' + format;
 	if (battleInProgress[toId(user.name)])  return 'Ya estoy en una batalla contigo, espera a que termine para retarme de nuevo.';
 	if (user.can('broadcast')) return 'auth';
 	if (exports.inBattle) return 'Estoy ocupado en otra batalla, retame cuando esta termine.';
@@ -281,6 +281,7 @@ var parse = {
 					} else {
 						setTimeout(function () {
 						room.add('|c|' + config.group + config.name + '|' + data);
+						room.update();
 					}, botDelay);
 					} 
 				},

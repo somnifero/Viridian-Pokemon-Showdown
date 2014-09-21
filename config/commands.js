@@ -1513,6 +1513,7 @@ var commands = exports.commands = {
 			"/logoclan (logo) - Establece el Logotipo del clan. Requiere ser líder del clan.<br />" +
 			"/closeclanroom - Bloquea una sala de clan a todos los que no sean miembros de dicho clan, salvo administradores.<br />" +
 			"/openclanroom - Elimina el bloqueo del comando /closeclanroom.<br />" +
+			"/fjg - Llama a la sala a los miembros del clan que no lo estaban.<br />" +
 			"/rk o /roomkick - Expulsa a un usuario de una sala. Requiere @ o superior.<br />" +
 			"<br />" +
 			"<big><b>Comandos de Administración:</b></big><br /><br />" +
@@ -1762,7 +1763,7 @@ var commands = exports.commands = {
 		if (!params || params.length !== 2) return this.sendReply("Usage: /setlogoclan clan, logo");
 
 		if (!Clans.setLogo(params[0], params[1]))
-			this.sendReply("El clan no existe o el link del logo es mayor de 80 caracteres.");
+			this.sendReply("El clan no existe o el link del logo es mayor de 120 caracteres.");
 		else {
 			this.sendReply("El nuevo logo del clan " + params[0] + " ha sido establecido con éxito.");
 		}
@@ -1881,7 +1882,7 @@ var commands = exports.commands = {
 		var claninfo = Clans.getElementalData (clanUser);
 		if (room && room.id === toId(claninfo.sala)) {
 			if (!Clans.setLogo(clanUser, target))
-				this.sendReply("El logo es mayor de 80 caracteres.");
+				this.sendReply("El logo es mayor de 120 caracteres.");
 			else {
 				this.addModCommand("Un nuevo logotipo para el clan " + clanUser + " ha sido establecido por " + user.name);
 			}
@@ -2596,6 +2597,38 @@ var commands = exports.commands = {
 		}
 	},
 	
+	llamarmiembros: 'fjg',
+	fjg: function (target, room, user) {
+		var permisionClan = false;
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (clanUser) {
+			var clanUserid = toId(clanUser);
+			var iduserwrit = toId(user.name);
+			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionvalue === 2) permisionClan = true;
+			if (!permisionClan && !this.can('clans')) return false;
+		} else {
+			return false;
+		}
+		var claninfo = Clans.getElementalData (clanUser);
+		if (room && room.id === toId(claninfo.sala)) {
+			var clanMembers = Clans.getMembers(clanUser);
+			var targetUser;
+			for (var i = 0; i < clanMembers.length; ++i) {
+				if (!room.users[toId(clanMembers[i])]) {
+					targetUser = Users.get(clanMembers[i])
+					if (targetUser && targetUser.connected) {
+						targetUser.joinRoom(room.id);
+						targetUser.popup('Has sido llamado a la sala ' + claninfo.sala.trim() + ' por ' + user.name + '.');
+					}
+				}
+			}
+			this.addModCommand("Los miembros del clan " + clanUser + " han sido llamados a la sala " + toId(claninfo.sala) + ' por ' + user.name + '.');
+		} else {
+			this.sendReply("Este comando solo puede ser usado en la sala del clan.");
+		}
+	},
+	
 	rk: 'roomkick',
 	roomkick: function (target, room, user, connection) {
 		if (!target) return this.sendReply("Usage: /roomkick user");
@@ -2640,7 +2673,7 @@ var commands = exports.commands = {
 			'<tr><td>CustomAvatar</td><td>Compra un avatar personalizado. Preferiblemente debe ser una imagen de pequeñas dimensiones y acorde a las reglas del servidor. Contactar con un Admin para obtener este art&iacute;culo.</td><td>6000</td></tr>' +
 			'<tr><td>TC</td><td>Compra una Tarjeta de entrenador básica. Con una Imagen modificable con /tcimage y una frase de entrenador modificable con /tcphrase</td><td>3000</td></tr>' +
 			'<tr><td>Symbol</td><td>Compra el acceso al comado /customsymbol que permite elegir un símbolo (excepto staff) para aparecer en lo alto de la lista de usuarios.</td><td>3000</td></tr>' +
-			'<tr><td>Avatar</td><td>Si ya tienes un avatar personaliado. Puedes cambiarlo por otro diferente. Contactar con un administrador para obtener este art&iacute;culo.</td><td>1000</td></tr>' +
+			'<tr><td>Avatar</td><td>Si ya tienes un avatar personalizado. Puedes cambiarlo por otro diferente. Contactar con un administrador para obtener este art&iacute;culo.</td><td>1000</td></tr>' +
 			'<tr><td>Sprite</td><td>Añade la imagen de un Pokemon a tu TC Básica. Máximo 6. Se pueden cambiar los pokemon con el comando /tcpokemon</td><td>100</td></tr>' +
 			'</tbody></table><br /> Para comprar un artículo usa el comando /buy (artículo)' +
 			'<br /> Algunos artículos solo se pueden comprar contactando con un Administrador. Para más información usa /shophelp' +
@@ -2994,10 +3027,14 @@ var commands = exports.commands = {
 	
 	tchtml: 'tccustom',
 	tccustom: function (target, room, user) {
-		if (!target) return this.sendReply("Usage: /tccustom html");
 		var tcData = Shop.getTrainerCard(user.name);
 		if (!tcData) return this.sendReply("No posees ninguna tarjeta de entrenador.");
 		if (!tcData.customTC) return this.sendReply("Tu tarjeta no es personalizada.");
+		if (!target) {
+			this.sendReply('Html de tu Tarjeta de entrenador:');
+			this.sendReplyBox(Tools.escapeHTML(tcData.customHtml));
+			return;
+		}
 		if (target.length > 1000) return this.sendReply("Tu código es demasiado largo. Contacta con un administrador para modificar la TC custom.");
 		var targetABS = Shop.deleteValues(target);
 		if (Shop.htmlTrainerCard(user.name, targetABS)) {
@@ -3138,7 +3175,9 @@ var commands = exports.commands = {
 
 	concedemedal: 'darmedalla',
 	darmedalla: function (target, room, user) {
-		if (!target) return this.sendReply('Usage: /darmedalla [user]');
+		if (!target) return this.sendReply('Usage: /darmedalla [user], [1-6]');
+		var params = target.split(',');
+		target = params[0];
 		var medalId = League.findMedalFromLeader(user.name);
 		if (!medalId) return this.sendReply('No ocupas ningún puesto en la liga.');
 		var userT = Users.get(target);
@@ -3149,6 +3188,12 @@ var commands = exports.commands = {
 			Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, ha entregado una medalla a ' + userT.name + '</b>.');
 		}
 		userT.popup(user.name + ', ' + medalData.desc + ', te ha entregado su medalla.');
+		if (params[1]) {
+			var result = parseInt(params[1]);
+			if (!result || result < 1 || result > 6) return this.sendReply('Medalla entregada. No se pudo entregar el premio porque el resultado debe ser un numero del 1 al 6');
+			Shop.giveMoney(userT.name, result * 100);
+			return this.sendReply('Medalla entregada. ' + userT.name + ' recibe ' + result + '00 pd como premio.');
+		}
 		return this.sendReply('Medalla entregada.');
 	},
 

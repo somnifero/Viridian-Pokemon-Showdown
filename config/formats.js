@@ -643,6 +643,24 @@ exports.Formats = [
 		ruleset: ['Pokemon', 'HP Percentage Mod', 'Sleep Clause Mod']
 	},
 	{
+		name: "Random Haxmons",
+		section: "Random Metagames",
+
+		searchShow: true,
+		team: 'random',
+		ruleset: ['Pokemon', 'HP Percentage Mod', 'Sleep Clause Mod', 'Freeze Clause'],
+		onModifyMovePriority: -100,
+		onModifyMove: function (move) {
+			if (move.accuracy !== true && move.accuracy < 100) move.accuracy = 0;
+			move.willCrit = true;
+			if (move.secondaries) {
+				for (var i = 0; i < move.secondaries.length; i++) {
+					move.secondaries[i].chance = 100;
+				}
+			}
+		}
+	},
+	{
 		name: "Random Sky Battle",
 		section: "Random Metagames",
 

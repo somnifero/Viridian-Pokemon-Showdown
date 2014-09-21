@@ -395,7 +395,7 @@ exports.setLogo = function (clan, text) {
 	var clanId = toId(clan);
 	if (!clans[clanId])
 		return false;
-	if (text.length > 80) return false;
+	if (text.length > 120) return false;
 	clans[clanId].logo = text;
 	writeClanData();
 	return true;
