@@ -135,17 +135,6 @@ exports.commands = {
 		return this.sendReply("Beneficios del Casino: " + money + ' Pds');
 	},
 
-	obtenerbeneficios: 'getcasinomoney',
-	getcasinomoney: function (target, room, user) {
-		if (room.id !== 'casino' && room.id !== 'casinoteamrocket') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
-		if (!this.can('declare', room)) return false;
-		var money = Shop.getUserMoney('casino');
-		if (money < 1) return this.sendReply("No había beneficios en el casino.");
-		Shop.transferMoney('casino', user.name, money);
-		this.logModCommand(user.name + ' ha obtenido los beneficios del casino: ' + money + ' Pds.');
-		return this.sendReply("Has recogido los beneficios del Casino: " + money + " Pds.");
-	},
-
 	slot: 'tragaperras',
 	slotmachine: 'tragaperras',
 	tragaperras: function (target, room, user) {
