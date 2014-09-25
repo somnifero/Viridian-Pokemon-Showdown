@@ -722,6 +722,7 @@ Tournament = (function () {
 		} else {
 			winner = data;
 		}
+		if (this.room.id === 'casino') CommandParser.parse('/endtourbets ' + winner, this.room, Users.get(Bot.config.name), Users.get(Bot.config.name).connections[0]);
 		var tourSize = this.generator.users.size;
 		if (this.room.isOfficial && tourSize >= 3) {
 			firstMoney = tourSize * 20;
