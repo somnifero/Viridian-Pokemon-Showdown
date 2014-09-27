@@ -952,7 +952,7 @@ var commands = exports.commands = {
 		}
 		if (target === 'inversebattle' || target === 'inverse') {
 			matched = true;
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3492433/\">Inverse Battle</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3518146/\">Inverse Battle</a><br />";
 		}
 		if (target === '350cup') {
 			matched = true;
@@ -1148,9 +1148,9 @@ var commands = exports.commands = {
 		}
 		if (target === 'overused' || target === 'ou') {
 			matched = true;
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3511596/\">np: OU Stage 5</a><br />";
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3491371/\">OU Banlist</a><br />";
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3502428/\">OU Viability Rankings</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3514144/\">np: OU Stage 6</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/dex/xy/tags/ou/\">OU Banlist</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3515714/\">OU Viability Rankings</a><br />";
 		}
 		if (target === 'ubers' || target === 'uber') {
 			matched = true;
@@ -1160,17 +1160,19 @@ var commands = exports.commands = {
 		if (target === 'underused' || target === 'uu') {
 			matched = true;
 			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3516640/\">np: UU Stage 3</a><br />";
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3502698/#post-5323505\">UU Banlist</a><br />";
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3500340/\">UU Viability Rankings</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/dex/xy/tags/uu/\">UU Banlist</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3516418/\">UU Viability Rankings</a><br />";
 		}
 		if (target === 'rarelyused' || target === 'ru') {
 			matched = true;
 			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3515615/\">np: RU Stage 4</a><br />";
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3506500/\">RU Viability Rankings</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/dex/xy/tags/ru/\">RU Banlist</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3516783/\">RU Viability Rankings</a><br />";
 		}
 		if (target === 'neverused' || target === 'nu') {
 			matched = true;
 			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3516675/\">np: NU Stage 2</a><br />";
+			buffer += "- <a href=\"https://www.smogon.com/dex/xy/tags/nu/\">NU Banlist</a><br />";
 			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3509494/\">NU Viability Rankings</a><br />";
 		}
 		if (target === 'littlecup' || target === 'lc') {
@@ -1351,7 +1353,7 @@ var commands = exports.commands = {
 			this.sendReply("You are now receiving lobby chat.");
 		}
 	},
-	
+
 	showimage: 'image',
 	postimage: 'image',
 	image: function (target, room, user) {
@@ -1381,107 +1383,6 @@ var commands = exports.commands = {
 		// secret sysop command
 		room.add(target);
 	},
-
-	/*********************************************************
-	 * Custom commands
-	 *********************************************************/
-
-	customavatars: 'customavatar',
-	customavatar: (function () {
-		const script = function () {/*
-			FILENAME=`mktemp`
-			function cleanup {
-				rm -f $FILENAME
-			}
-			trap cleanup EXIT
-
-			set -xe
-
-			timeout 10 wget "$1" -nv -O $FILENAME
-
-			FRAMES=`identify $FILENAME | wc -l`
-			if [ $FRAMES -gt 1 ]; then
-				EXT=".gif"
-			else
-				EXT=".png"
-			fi
-
-			timeout 10 convert $FILENAME -layers TrimBounds -coalesce -adaptive-resize 80x80\> -background transparent -gravity center -extent 80x80 "$2$EXT"
-		*/}.toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
-
-		var pendingAdds = {};
-		return function (target) {
-			var parts = target.split(',');
-			var cmd = parts[0].trim().toLowerCase();
-
-			if (cmd in {'':1, show:1, view:1, display:1}) {
-				var message = "";
-				for (var a in Config.customAvatars)
-					message += "<strong>" + Tools.escapeHTML(a) + ":</strong> " + Tools.escapeHTML(Config.customAvatars[a]) + "<br />";
-				return this.sendReplyBox(message);
-			}
-
-			if (!this.can('customavatar')) return false;
-
-			switch (cmd) {
-				case 'set':
-					var userid = toId(parts[1]);
-					var user = Users.getExact(userid);
-					var avatar = parts.slice(2).join(',').trim();
-
-					if (!userid) return this.sendReply("You didn't specify a user.");
-					if (Config.customAvatars[userid]) return this.sendReply(userid + " already has a custom avatar.");
-
-					var hash = require('crypto').createHash('sha512').update(userid + '\u0000' + avatar).digest('hex').slice(0, 8);
-					pendingAdds[hash] = {userid: userid, avatar: avatar};
-					parts[1] = hash;
-
-					if (!user) {
-						this.sendReply("Warning: " + userid + " is not online.");
-						this.sendReply("If you want to continue, use: /customavatar forceset, " + hash);
-						return;
-					}
-
-					/* falls through */
-				case 'forceset':
-					var hash = parts[1].trim();
-					if (!pendingAdds[hash]) return this.sendReply("Invalid hash.");
-
-					var userid = pendingAdds[hash].userid;
-					var avatar = pendingAdds[hash].avatar;
-					delete pendingAdds[hash];
-
-					require('child_process').execFile('bash', ['-c', script, '-', avatar, './config/avatars/' + userid], function (e, out, err) {
-						if (e) {
-							this.sendReply(userid + "'s custom avatar failed to be set. Script output:");
-							(out + err).split('\n').forEach(this.sendReply.bind(this));
-							return;
-						}
-
-						reloadCustomAvatars();
-						this.sendReply(userid + "'s custom avatar has been set.");
-					}.bind(this));
-					break;
-
-				case 'delete':
-					var userid = toId(parts[1]);
-					if (!Config.customAvatars[userid]) return this.sendReply(userid + " does not have a custom avatar.");
-
-					if (Config.customAvatars[userid].toString().split('.').slice(0, -1).join('.') !== userid)
-						return this.sendReply(userid + "'s custom avatar (" + Config.customAvatars[userid] + ") cannot be removed with this script.");
-					require('fs').unlink('./config/avatars/' + Config.customAvatars[userid], function (e) {
-						if (e) return this.sendReply(userid + "'s custom avatar (" + Config.customAvatars[userid] + ") could not be removed: " + e.toString());
-
-						delete Config.customAvatars[userid];
-						this.sendReply(userid + "'s custom avatar removed successfully");
-					}.bind(this));
-					break;
-
-				default:
-					return this.sendReply("Invalid command. Valid commands are `/customavatar set, user, avatar` and `/customavatar delete, user`.");
-			}
-		};
-	})(),
 
 	/*********************************************************
 	 * Clan commands
@@ -1816,7 +1717,7 @@ var commands = exports.commands = {
 			this.sendReply("La nueva sala del clan " + params[0] + " ha sido establecida con éxito.");
 		}
 	},
-	
+
 	giveclanmedal: function (target) {
 		if (!this.can('clans')) return false;
 		var params = target.split(',');
@@ -1828,7 +1729,7 @@ var commands = exports.commands = {
 			this.sendReply("Has entegado una medalla al clan " + params[0]);
 		}
 	},
-	
+
 	removeclanmedal: function (target) {
 		if (!this.can('clans')) return false;
 		var params = target.split(',');
@@ -2141,7 +2042,7 @@ var commands = exports.commands = {
 
 
 	//new war system
-	
+
 	pendingwars: 'wars',
 	wars: function (target, room, user) {
 		if (!this.canBroadcast()) return false;
@@ -2530,7 +2431,7 @@ var commands = exports.commands = {
 
 		}
 	},
-	
+
 	warlog: function (target, room, user) {
 		var autoclan = false;
 		if (!target) autoclan = true;
@@ -2556,7 +2457,7 @@ var commands = exports.commands = {
 			"|raw| <center><big><big><b>Ultimas Wars del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + Clans.getWarLogTable(target) + '<br /> Fecha del servidor: ' + dateWar + '</center>'
 		);
 	},
-	
+
 	closeclanroom: function (target, room, user) {
 		var permisionClan = false;
 		var clanRoom = Clans.findClanFromRoom(room.id);
@@ -2567,8 +2468,8 @@ var commands = exports.commands = {
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
 			if (perminsionvalue === 2) permisionClan = true;
-			
-		} 
+
+		}
 		if (!permisionClan && !this.can('clans')) return false;
 		if (!Clans.closeRoom(room.id, clanRoom))
 			this.sendReply("Error al intentar cerrar la sala. Es posible que ya esté cerrada.");
@@ -2576,7 +2477,7 @@ var commands = exports.commands = {
 			this.addModCommand("Esta sala ha sido cerrada a quienes no sean miembros de " + clanRoom + " por " + user.name);
 		}
 	},
-	
+
 	openclanroom: function (target, room, user) {
 		var permisionClan = false;
 		var clanRoom = Clans.findClanFromRoom(room.id);
@@ -2587,8 +2488,8 @@ var commands = exports.commands = {
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
 			if (perminsionvalue === 2) permisionClan = true;
-			
-		} 
+
+		}
 		if (!permisionClan && !this.can('clans')) return false;
 		if (!Clans.openRoom(room.id, clanRoom))
 			this.sendReply("Error al intentar abrir la sala. Es posible que ya esté abierta.");
@@ -2596,7 +2497,7 @@ var commands = exports.commands = {
 			this.addModCommand("Esta sala ha sido abierta a todos los usuarios por " + user.name);
 		}
 	},
-	
+
 	llamarmiembros: 'fjg',
 	fjg: function (target, room, user) {
 		var permisionClan = false;
@@ -2628,7 +2529,7 @@ var commands = exports.commands = {
 			this.sendReply("Este comando solo puede ser usado en la sala del clan.");
 		}
 	},
-	
+
 	rk: 'roomkick',
 	roomkick: function (target, room, user, connection) {
 		if (!target) return this.sendReply("Usage: /roomkick user");
@@ -2646,7 +2547,7 @@ var commands = exports.commands = {
 		this.add('|unlink|' + this.getLastIdOf(targetUser));
 		targetUser.leaveRoom(room.id);
 	},
-	
+
 	kickall: function (target, room, user, connection) {
 		if (user.locked || user.mutedRooms[room.id]) return this.sendReply("You cannot do this while unable to talk.");
 		if (!this.can('makeroom')) return false;
@@ -2661,7 +2562,7 @@ var commands = exports.commands = {
 	/*********************************************************
 	 * Shop commands
 	 *********************************************************/
-	 
+
 	tienda: 'shop',
 	shop: function (target, room, user) {
 		if (!this.canBroadcast()) return false;
@@ -2680,7 +2581,7 @@ var commands = exports.commands = {
 			'</center>'
 		);
 	},
-	
+
 	ayudatienda: 'shophelp',
 	shophelp: function () {
 		if (!this.canBroadcast()) return false;
@@ -2707,10 +2608,10 @@ var commands = exports.commands = {
 			"/symbolpermision (user), (on/off) - Da o Quita el permiso para usar Custom Symbols.<br />" +
 			"/removetc (user) - Elimina una tarjeta de entrenador.<br />" +
 			"/setcustomtc (user), (on/off) - Establece el permiso para usar una Tc personalizada.<br />" +
-			"/sethtmltc (user), (html) - Modifica la Tc personalizada de un usuario.<br />" 
+			"/sethtmltc (user), (html) - Modifica la Tc personalizada de un usuario.<br />"
 		);
 	},
-	
+
 	comprar: 'buy',
 	buy: function (target, room, user) {
 		var params = target.split(',');
@@ -2782,13 +2683,13 @@ var commands = exports.commands = {
 				return this.sendReply("No has especificado ningún artículo válido.");
 		}
 	},
-	
+
 	money: 'pd',
 	pd: function (target, room, user) {
 		var autoData = false;
 		if (!target) autoData = true;
 		if (!this.canBroadcast()) return false;
-		
+
 		var pds = 0;
 		var userName = user.name;
 		if (autoData) {
@@ -2801,13 +2702,13 @@ var commands = exports.commands = {
 		}
 		this.sendReplyBox('Ahorros de <b>' + userName + '</b>: ' + pds + ' pd');
 	},
-	
+
 	trainercard: 'tc',
 	tc: function (target, room, user) {
 		var autoData = false;
 		if (!target) autoData = true;
 		if (!this.canBroadcast()) return false;
-		
+
 		var pds = 0;
 		var userName = user.name;
 		var tcData = {};
@@ -2828,12 +2729,12 @@ var commands = exports.commands = {
 		if (tcData.nPokemon === 0) pokeData = '';
 		this.sendReplyBox('<center><h2>' + userName + '</h2><img src="' + encodeURI(tcData.image) + '" width="80" height="80" title="' + userName + '" /><br /><br /><b>"' + Tools.escapeHTML(tcData.phrase) + '"</b>' + pokeData + '</center>');
 	},
-	
+
 	givemoney: function (target, room, user) {
 		var params = target.split(',');
 		if (!params || params.length !== 2) return this.sendReply("Usage: /givemoney usuario, pds");
 		if (!this.can('givemoney')) return false;
-		
+
 		var pds = parseInt(params[1]);
 		if (pds <= 0) return this.sendReply("La cantidad no es valida.");
 		var userh = Users.getExact(params[0]);
@@ -2845,12 +2746,12 @@ var commands = exports.commands = {
 			this.sendReply(userName + ' ha recibido ' + pds + ' pd');
 		}
 	},
-	
+
 	removemoney: function (target, room, user) {
 		var params = target.split(',');
 		if (!params || params.length !== 2) return this.sendReply("Usage: /removemoney usuario, pds");
 		if (!this.can('givemoney')) return false;
-		
+
 		var pds = parseInt(params[1]);
 		if (pds <= 0) return this.sendReply("La cantidad no es valida.");
 		var userh = Users.getExact(params[0]);
@@ -2862,12 +2763,12 @@ var commands = exports.commands = {
 			this.sendReply(userName + ' ha perdido ' + pds + ' pd');
 		}
 	},
-	
+
 	donar: 'donate',
 	donate: function (target, room, user) {
 		var params = target.split(',');
 		if (!params || params.length !== 2) return this.sendReply("Usage: /donate usuario, pds");
-		
+
 		var pds = parseInt(params[1]);
 		if (!pds || pds <= 0) return this.sendReply("La cantidad no es valida.");
 		var userh = Users.getExact(params[0]);
@@ -2879,7 +2780,7 @@ var commands = exports.commands = {
 			this.sendReply('Has donado ' + pds + ' pd al usuario ' + userName + '.');
 		}
 	},
-	
+
 	symbolpermision: function (target, room, user) {
 		if (!this.can('givemoney')) return false;
 		var params = target.split(',');
@@ -2897,7 +2798,7 @@ var commands = exports.commands = {
 			return this.sendReply("El usuario no tenía ningún permiso que quitar.");
 		}
 	},
-	
+
 	simbolo: 'customsymbol',
 	customsymbol: function (target, room, user) {
 		if (!Shop.symbolPermision(user.name)) return  this.sendReply('Debes comprar este comando en la tienda para usarlo.');
@@ -2924,7 +2825,7 @@ var commands = exports.commands = {
 		user.updateIdentity();
 		user.hasCustomSymbol = true;
 	},
-	
+
 	resetsymbol: function (target, room, user) {
 		if (!user.hasCustomSymbol) return this.sendReply('No tienes nigún simbolo personalizado.');
 		user.getIdentity = function (roomid) {
@@ -2949,7 +2850,7 @@ var commands = exports.commands = {
 		user.updateIdentity();
 		this.sendReply('Tu simbolo se ha restablecido.');
 	},
-	
+
 	removetc: function (target, room, user) {
 		if (!this.can('givemoney')) return false;
 		if (!target) return this.sendReply("Usage: /removetc usuario");
@@ -2959,7 +2860,7 @@ var commands = exports.commands = {
 			return this.sendReply("El usuario no poseía Tc.");
 		}
 	},
-	
+
 	setcustomtc: function (target, room, user) {
 		if (!this.can('givemoney')) return false;
 		var params = target.split(',');
@@ -2977,7 +2878,7 @@ var commands = exports.commands = {
 			return this.sendReply("El usuario no poseía Tc o no tenía el permiso para customtrainercards.");
 		}
 	},
-	
+
 	tcimage: function (target, room, user) {
 		if (!target) return this.sendReply("Usage: /tcimage link");
 		var tcData = Shop.getTrainerCard(user.name);
@@ -2990,7 +2891,7 @@ var commands = exports.commands = {
 			return this.sendReply("Error al cambiar la imagen de la TC.");
 		}
 	},
-	
+
 	tcphrase: function (target, room, user) {
 		if (!target) return this.sendReply("Usage: /tcphrase text");
 		var tcData = Shop.getTrainerCard(user.name);
@@ -3003,7 +2904,7 @@ var commands = exports.commands = {
 			return this.sendReply("Error al cambiar la frase de la TC.");
 		}
 	},
-	
+
 	tcpokemon: function (target, room, user) {
 		if (!target) return this.sendReply("Usage: /tcpokemon [Pokemon1], [Pokemon2]...");
 		var params = target.split(',');
@@ -3024,7 +2925,7 @@ var commands = exports.commands = {
 			return this.sendReply("Error al cambiar los pokemon de la TC.");
 		}
 	},
-	
+
 	tchtml: 'tccustom',
 	tccustom: function (target, room, user) {
 		var tcData = Shop.getTrainerCard(user.name);
@@ -3043,7 +2944,7 @@ var commands = exports.commands = {
 			return this.sendReply("Error al cambiar los datos.");
 		}
 	},
-	
+
 	sethtmltc: function (target, room, user) {
 		if (!this.can('givemoney')) return false;
 		var params = target.split(',');
@@ -3062,7 +2963,7 @@ var commands = exports.commands = {
 	/*********************************************************
 	 * League commands
 	 *********************************************************/
-	
+
 	league: 'liga',
 	liga: function (target, room, user) {
 		if (!this.canBroadcast()) return false;
@@ -3240,6 +3141,8 @@ var commands = exports.commands = {
 	},
 
 	/*********************************************************
+=======
+>>>>>>> base-migrate-helper
 	 * Help commands
 	 *********************************************************/
 
