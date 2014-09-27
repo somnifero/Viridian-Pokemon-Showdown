@@ -911,7 +911,15 @@ var cmds = {
 		tour[room.id].question = question;
 		tour[room.id].answerList = answers;
 		this.logModCommand(user.name + ' ha iniciado la encuesta "' + tour[room.id].question + '"');
-		room.addRaw('<div class="infobox"><h2>' + tour[room.id].question + separacion + '<font color="green"><small>Para votar escribe /vote OPCION</small></font></h2><hr />' + separacion + separacion + " &bull; " + tour[room.id].answerList.join(' &bull; ') + '</div>');
+		var pollOptions = '';
+		for (var i = 0; i < tour[room.id].answerList.length; ++i) {
+			pollOptions += '<button name="send" value="/vote ' + tour[room.id].answerList[i] + '">' + tour[room.id].answerList[i] + '</button>' + separacion;
+		}
+		room.addRaw('<div class="infobox"><h2>' + tour[room.id].question + separacion + '<font color="green"><small>Para votar escribe /vote OPCION</small></font></h2><hr />' + pollOptions + '</div>');
+	},
+	
+	tierpoll: function(target, room, user) {
+		this.parse('/poll Formato para el siguiente Torneo, ' + Object.keys(Tools.data.Formats).filter(function (f) {return Tools.data.Formats[f].effectType === 'Format'; }).join(", "));
 	},
 
 	vote: function(target, room, user) {
@@ -970,7 +978,11 @@ var cmds = {
 		var separacion = "&nbsp;&nbsp;";
 		if (!tour[room.id].question) return this.sendReply('No hay encuestas en curso.');
 		if (!this.canBroadcast()) return;
-		this.sendReply('|raw|<div class="infobox"><h2>' + tour[room.id].question + separacion + '<font color="green"><small>Para votar escribe "/vote OPCION"</small></font></h2><hr />' + separacion + separacion + " &bull; " + tour[room.id].answerList.join(' &bull; ') + '</div>');
+		var pollOptions = '';
+		for (var i = 0; i < tour[room.id].answerList.length; ++i) {
+			pollOptions += '<button name="send" value="/vote ' + tour[room.id].answerList[i] + '">' + tour[room.id].answerList[i] + '</button>' + separacion;
+		}
+		this.sendReply('|raw|<div class="infobox"><h2>' + tour[room.id].question + separacion + '<font color="green"><small>Para votar escribe "/vote OPCION"</small></font></h2><hr />' + pollOptions + '</div>');
 	}
 };
 

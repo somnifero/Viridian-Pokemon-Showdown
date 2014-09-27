@@ -150,14 +150,16 @@ exports.commands = {
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
 		if (!this.canBroadcast()) return;
 		if (!bingoStatus) return this.sendReply("No hay ningún bingo en marcha.");
-		if (tables[user.userid]) {
-			var html = '<b>Juego de bingo:</b> Tablilla de ' + user.name + '<br /><br />';
+		var targetUserId = user.userid;
+		if (tables[toId(target)]) targetUserId = toId(target);
+		if (tables[targetUserId]) {
+			var html = '<b>Juego de bingo:</b> Tablilla de ' + getUserName(targetUserId) + '<br /><br />';
 			html += '<table border="1" cellspacing="0" cellpadding="3" target="_blank"><tbody><tr>';
-			for (var n = 0; n < tables[user.userid].length; ++n) {
-				if (!bingoSaidNumbers[tables[user.userid][n]]) {
-					html += '<td><center><b>' + tables[user.userid][n] + '</b></center></td>';
+			for (var n = 0; n < tables[targetUserId].length; ++n) {
+				if (!bingoSaidNumbers[tables[targetUserId][n]]) {
+					html += '<td><center><b>' + tables[targetUserId][n] + '</b></center></td>';
 				} else {
-					html += '<td><center><font color="red"><b>' + tables[user.userid][n] + '</b></font></center></td>';
+					html += '<td><center><font color="red"><b>' + tables[targetUserId][n] + '</b></font></center></td>';
 				}
 			}
 			html += '</tr></tbody></table><br />';
@@ -559,32 +561,37 @@ exports.commands = {
 	eventspermission: function (target, room, user) {
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
 		if (!target) return this.sendReply("No has especificado ningún rango.");
-		if (defaultPermission === 'casino' && !casinoOwners[user.userid] && !this.can('givemoney')) return false;
+		if (defaultPermission === 'casino' && !casinoOwners[user.userid] && !this.can('casino')) return false;
 		switch (target.trim()) {
+			case '+':
+				if (!casinoOwners[user.userid] && !this.can('declare', room) && !this.can('casino')) return false;
+				defaultPermission = 'broadcast';
+				this.privateModCommand("(" + user.name + " establecido el permiso mínimo para hacer eventos en el casino a +)");
+				break;
 			case '%':
-				if (!casinoOwners[user.userid] && !this.can('declare', room)) return false;
+				if (!casinoOwners[user.userid] && !this.can('declare', room) && !this.can('casino')) return false;
 				defaultPermission = 'staff';
 				this.privateModCommand("(" + user.name + " establecido el permiso mínimo para hacer eventos en el casino a %)");
 				break;
 			case '@':
-				if (!casinoOwners[user.userid] && !this.can('declare', room)) return false;
+				if (!casinoOwners[user.userid] && !this.can('declare', room) && !this.can('casino')) return false;
 				defaultPermission = 'ban';
 				this.privateModCommand("(" + user.name + " establecido el permiso mínimo para hacer eventos en el casino a @)");
 				break;
 			case '#':
-				if (!casinoOwners[user.userid] && !this.can('declare', room)) return false;
+				if (!casinoOwners[user.userid] && !this.can('declare', room) && !this.can('casino')) return false;
 				defaultPermission = 'declare';
 				this.privateModCommand("(" + user.name + " establecido el permiso mínimo para hacer eventos en el casino a #)");
 				break;
 			case '~':
 			case 'OFF':
 			case 'off':
-				if (!casinoOwners[user.userid] && !this.can('givemoney')) return false;
+				if (!casinoOwners[user.userid] && !this.can('casino')) return false;
 				defaultPermission = 'casino';
 				this.privateModCommand("(" + user.name + " establecido el permiso mínimo para hacer eventos en el casino a ~)");
 				break;
 			default:
-				return this.sendReply("Rangos: %, @, # y ~");
+				return this.sendReply("Rangos: +, %, @, # y ~");
 		}
 	}
 }

@@ -302,6 +302,7 @@ var parse = {
 				},
 				parse: function (target) {
 					CommandParser.parse(target, room, Users.get(Bot.config.name), Users.get(Bot.config.name).connections[0]);
+					room.update();
 				},
 			};
 
@@ -702,7 +703,7 @@ var commands = {
 			setTimeout(function () {
 				if (tour[_room.id].question) self.parse('/endpoll');
 
-				self.parse('/poll Formato para el siguiente Torneo, ' + Object.keys(Tools.data.Formats).filter(function (f) { return Tools.data.Formats[f].effectType === 'Format'; }).join(", "));
+				self.parse('/tierpoll');
 				setTimeout(function () {
 					self.parse('/endpoll');
 					Bot.commands.maketournament.call(self, (tour[_room.id].topOption + ', 2 minute'), _room, _user, 'host');
