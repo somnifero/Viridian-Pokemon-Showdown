@@ -3001,7 +3001,13 @@ var commands = exports.commands = {
 			"/gymdesc [html] - Establece las reglas del gimnasio/elite4<br />" +
 			"/darmedalla [usuario] - Entrega una medalla a un retador.<br />" +
 			"/quitarmedalla [usuario] - Retira una medalla entregada por incumplimiento de las reglas.<br />" +
-			"/setgym [name/desc/color/image], [data] - Comando para administrar los datos de la liga"
+			"/retarliga [usuario] - Comando para solicitar un desafio a un iembro de la liga.<br />" +
+			"/desafios - Muestra la lista de desafios pendientes.<br />" +
+			"/dchall [usuario] - Confirma que un desafío fue concluido y lo elimina de la lista de pendientes.<br />" +
+			"/blockleague - Bloquea los desafios oficiales de la liga.<br />" +
+			"/unblockleague - Desbloquea los desafios de la liga.<br />" +
+			"/setgym [medal], [name/desc/color/image], [data] - Comando para administrar los datos de la liga" + 
+			"/setgymleader [medal], [user] - Comando para cambiar un puesto en la liga"
 			);
 		}
 		var dataLeague = League.getData(target);
@@ -3163,6 +3169,72 @@ var commands = exports.commands = {
 				if (!League.setGymDescHTML(params[0], target.substr(params[0].length + params[1].length + 2))) return this.sendReply('Nombre de Medalla inexistente');
 				return this.sendReply('Datos cambiados correctamente');
 		}
+	},
+	
+	leaguechallenges: 'desafios',
+	desafios: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		if (!target) return this.sendReplyBox(League.getChallenges(user.name));
+		return this.sendReplyBox(League.getChallenges(target));
+	},
+	
+	challengueleader: 'retarlider',
+	retarliga: 'retarlider',
+	desafiarlider: 'retarlider',
+	retarlider: function (target, room, user) {
+		if (!target) return this.sendReply("No has especicado ningun usuario");
+		this.sendReply(League.challengeLeader(target, user));
+	},
+	
+	dchall: 'clearchallenge',
+	borrardesafio: 'clearchallenge',
+	clearchallenge: function (target, room, user) {
+		if (!target) return this.sendReply("No has especicado ningun usuario");
+		if (League.findMedalFromLeader(user.name)) return this.sendReply(League.finishChallenge(user.name, target));
+		return this.sendReply("No figuras como miembro de la liga.");
+	},
+	
+	limpiardesafios: 'clearchallenges',
+	clearchallenges: function (target, room, user) {
+		if (target && !this.can('leagueadmin')) return false;
+		if (target) {
+			this.sendReply(League.clearChallenges(target));
+		} else {
+			if (League.findMedalFromLeader(user.name)) return this.sendReply(League.clearChallenges(user.name));
+			return this.sendReply("No figuras como miembro de la liga.");
+		}
+	},
+	
+	awayleague: 'blockleaguechallenges',
+	blockleague: 'blockleaguechallenges',
+	blockleaguechallenges: function (target, room, user) {
+		var medalId = League.findMedalFromLeader(user.name);
+		if (medalId) {
+			if (user.blockLeague) return this.sendReply("Ya estabas bloqueando los desafíos de la liga.");
+			user.blockLeague = 1;
+			if (Rooms.rooms[League.leagueRoom]) {
+				var medalData = League.getData(medalId);
+				Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, ha dejado de estar disponible temporalmente para retos oficiales de la liga.</b>');
+			}
+			return this.sendReply('Has bloqueado los desafios oficiales de la liga viridian.');
+		}
+		return this.sendReply("No figuras como miembro de la liga.");
+	},
+	
+	backleague: 'unblockleaguechallenges',
+	unblockleague: 'unblockleaguechallenges',
+	unblockleaguechallenges: function (target, room, user) {
+		var medalId = League.findMedalFromLeader(user.name);
+		if (medalId) {
+			if (!user.blockLeague) return this.sendReply("No estabas bloqueando los desafíos de la liga.");
+			user.blockLeague = 0;
+			if (Rooms.rooms[League.leagueRoom]) {
+				var medalData = League.getData(medalId);
+				Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, está disponible para aceptar retos oficiaes de la liga.</b>');
+			}
+			return this.sendReply('Has desbloqueado los desafios oficiales de la liga viridian.');
+		}
+		return this.sendReply("No figuras como miembro de la liga.");
 	},
 
 	/*********************************************************

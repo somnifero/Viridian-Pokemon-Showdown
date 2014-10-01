@@ -1,6 +1,7 @@
 //Viridian League
 
 const leagueDataFile = './config/league.json';
+const challengesDataFile = './config/leaguechallenges.json';
 
 var fs = require('fs');
 
@@ -141,15 +142,21 @@ function defaultData() {
 
 if (!fs.existsSync(leagueDataFile))
 	fs.writeFileSync(leagueDataFile, JSON.stringify(defaultData()));
+	
+if (!fs.existsSync(challengesDataFile))
+	fs.writeFileSync(challengesDataFile, '{}');
 
 var league = JSON.parse(fs.readFileSync(leagueDataFile).toString());
+var pendingChallenges = JSON.parse(fs.readFileSync(challengesDataFile).toString());
 
 exports.league = league;
+exports.pendingChallenges = pendingChallenges;
 exports.leagueRoom = 'ligaviridian';
 
 function writeLeagueData() {
 	exports.league = league;
 	fs.writeFileSync(leagueDataFile, JSON.stringify(league));
+	fs.writeFileSync(challengesDataFile, JSON.stringify(pendingChallenges));
 }
 
 exports.getData = function (medalId) {
@@ -266,4 +273,73 @@ exports.setGymDescHTML = function (medalId, html) {
 	league[medalId].htmlDesc = html;
 	writeLeagueData();
 	return true;
+};
+
+exports.getChallenges = function (medalId) {
+	medalId = toId(medalId);
+	if (!league[medalId]) medalId = exports.findMedalFromLeader(medalId);
+	if (!medalId) return 'No se encontró al lider o la medalla especificada.';
+	if (!pendingChallenges[medalId]) pendingChallenges[medalId] = {};
+	if (exports.getChallengeCount(medalId) < 1) return 'Este miembro de la liga no tiene desafíos pendientes.';
+	var html = '<big><b>Desafios pendientes de ' + league[medalId].leader + '</b></big><br /><br /><table border="1" cellspacing="0" cellpadding="3" target="_blank"><tbody><tr target="_blank"><th target="_blank">Retador</th><th target="_blank">Fecha</th></tr>';
+	var targetUser;
+	var userName;
+	for (var i in  pendingChallenges[medalId]) {
+		userName = toId(i);
+		targetUser = Users.get(i);
+		if (targetUser) userName = targetUser.name;
+		html += '<tr><td align="center">' + userName + '</td><td align="center">' + pendingChallenges[medalId][i] +'</td><tr>';
+	}
+	return html + '';
+};
+
+exports.getChallengeCount = function (medalId) {
+	medalId = toId(medalId);
+	if (!league[medalId]) medalId = exports.findMedalFromLeader(medalId);
+	if (!medalId) return 'No se encontró al lider o la medalla especificada.';
+	if (!pendingChallenges[medalId]) pendingChallenges[medalId] = {};
+	var totalChallenges = 0;
+	for (var i in  pendingChallenges[medalId]) {
+		++totalChallenges;
+	}
+	return totalChallenges;
+};
+
+exports.challengeLeader = function (medalId, user) {
+	var userId = user.userid;
+	medalId = toId(medalId);
+	if (!league[medalId]) medalId = exports.findMedalFromLeader(medalId);
+	if (!medalId) return 'No se encontró al lider o la medalla especificada.';
+	if (!pendingChallenges[medalId]) pendingChallenges[medalId] = {};
+	var leaderUser = Users.get(league[medalId].leader);
+	if (!leaderUser || !leaderUser.connected || leaderUser.blockLeague) return league[medalId].leader + ' no está disponible en este momento.';
+	if (pendingChallenges[medalId][userId]) return 'Ya habías retado a este miembro de la liga, espera a que acepte tu desafío.';
+	if (exports.getChallengeCount(medalId) >= 20) return 'Este miembro de la liga tiene demasiados retos pendientes. Puedes solicitar tu reto por MP si es muy urgente.';
+	var f = new Date();
+	var dateNow = f.getDate() + '-' + f.getMonth() + ' ' + f.getHours() + 'h';
+	pendingChallenges[medalId][userId] = dateNow;
+	leaderUser.send('|pm|' + user.group + user.name + '|' + leaderUser.group + leaderUser.name + '| Solicito desafío oficial de la Liga Viridian. (Mensaje automático. El desafío se ha añadido a tu lista de desafíos, la cual puedes consultar con /desafios)');
+	writeLeagueData();
+	return 'Has desafíado a ' + leaderUser.name + ', ' + league[medalId].desc + '. Cuando esté listo te avisará y podras retarle directamente. Revisa su lista de desafíos para ver que lugar ocupas.';
+};
+
+exports.finishChallenge = function (medalId, user) {
+	var userId = toId(user);
+	medalId = toId(medalId);
+	if (!league[medalId]) medalId = exports.findMedalFromLeader(medalId);
+	if (!medalId) return 'No se encontró al lider o la medalla especificada.';
+	if (!pendingChallenges[medalId]) pendingChallenges[medalId] = {};
+	if (!pendingChallenges[medalId][userId]) return 'Este usuario no había desafiado al lider especificado.';
+	delete pendingChallenges[medalId][userId];
+	writeLeagueData();
+	return 'El desafio de ' + userId + ' ha sido eliminado con exito.';
+};
+
+exports.clearChallenges = function (medalId) {
+	medalId = toId(medalId);
+	if (!league[medalId]) medalId = exports.findMedalFromLeader(medalId);
+	if (!medalId) return 'No se encontró al lider o la medalla especificada.';
+	pendingChallenges[medalId] = {};
+	writeLeagueData();
+	return 'La lista de desafios ha sido borrada con exito.';
 };
