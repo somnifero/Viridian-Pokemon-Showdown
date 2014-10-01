@@ -535,6 +535,39 @@ var commands = {
 		this.parse('/tell ' + toId(parts[0]) + ', ' + Tools.escapeHTML(parts[1]));
 		this.sendReply('Mensaje enviado a: ' + parts[0] + '.');
 	},
+	
+	writecmd: function (target, room, user) {
+		if (!this.can('bottell')) return;
+		if (target) this.parse(target);
+	},
+	
+	whois: function (target, room, user) {
+		if (!target) return;
+		var shopData = Shop.getBotPhrase(target);
+		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData);
+		var targetUser = Users.get(target);
+		if (!targetUser) return this.sendReply('No se nada acerca de ' + toId(target) + '.');
+		switch (targetUser.group) {
+			case '~':
+				shopData = 'Administrador del servidor viridian';
+				break;
+			case '&':
+				shopData = 'Leader del servidor viridian';
+				break;
+			case '@':
+				shopData = 'Moderador del servidor viridian';
+				break;
+			case '%':
+				shopData = 'Driver del servidor viridian';
+				break;
+			case '+':
+				shopData = 'Voiced del servidor viridian';
+				break;
+			default:
+				shopData = 'Usuario del servidor viridian';
+		}
+		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData );
+	},
 
 	seen: function (target, room, user, connection) {
 		if (!target) return;

@@ -2594,12 +2594,13 @@ var commands = exports.commands = {
 		this.sendReplyBox(
 			'<center><h3><b><u>Tienda de Viridian</u></b></h3><table border="1" cellspacing="0" cellpadding="3" target="_blank"><tbody>' +
 			'<tr><th>Art&iacute;culo</th><th>Descripci&oacute;n</th><th>Coste</th></tr>' +
-			'<tr><td>CustomTC</td><td>Compra una Tarjeta de Entrenador personalizada (a partir de código html). Contactar con un administrador si el código es muy largo para un solo mensaje.</td><td>10000</td></tr>' +
-			'<tr><td>Chatroom</td><td>Compra una Sala de chat. Será pública o privada en función del motivo de su compra. Si se detecta spam de comandos / saturación del modlog será borrada.</td><td>8000</td></tr>' +
-			'<tr><td>CustomAvatar</td><td>Compra un avatar personalizado. Preferiblemente debe ser una imagen de pequeñas dimensiones y acorde a las reglas del servidor. Contactar con un Admin para obtener este art&iacute;culo.</td><td>6000</td></tr>' +
+			'<tr><td>Chatroom</td><td>Compra una Sala de chat. Será pública o privada en función del motivo de su compra. Si se detecta spam de comandos / saturación del modlog será borrada.</td><td>10000</td></tr>' +
+			'<tr><td>CustomAvatar</td><td>Compra un avatar personalizado. Preferiblemente debe ser una imagen de pequeñas dimensiones y acorde a las reglas del servidor. Contactar con un Admin para obtener este art&iacute;culo.</td><td>8000</td></tr>' +
+			'<tr><td>CustomTC</td><td>Compra una Tarjeta de Entrenador personalizada (a partir de código html). Contactar con un administrador si el código es muy largo para un solo mensaje.</td><td>8000</td></tr>' +
+			'<tr><td>Symbol</td><td>Compra el acceso al comado /customsymbol que permite elegir un símbolo (excepto staff) para aparecer en lo alto de la lista de usuarios.</td><td>4000</td></tr>' +
 			'<tr><td>TC</td><td>Compra una Tarjeta de entrenador básica. Con una Imagen modificable con /tcimage y una frase de entrenador modificable con /tcphrase</td><td>3000</td></tr>' +
-			'<tr><td>Symbol</td><td>Compra el acceso al comado /customsymbol que permite elegir un símbolo (excepto staff) para aparecer en lo alto de la lista de usuarios.</td><td>3000</td></tr>' +
-			'<tr><td>Avatar</td><td>Si ya tienes un avatar personalizado. Puedes cambiarlo por otro diferente. Contactar con un administrador para obtener este art&iacute;culo.</td><td>1000</td></tr>' +
+			'<tr><td>BotPhrase</td><td>Puedes establecer una frase personalizada para el comando .whois del Bot.</td><td>1500</td></tr>' +
+			'<tr><td>Avatar</td><td>Si ya tienes un avatar personalizado. Puedes cambiarlo por otro diferente.</td><td>1000</td></tr>' +
 			'<tr><td>Sprite</td><td>Añade la imagen de un Pokemon a tu TC Básica. Máximo 6. Se pueden cambiar los pokemon con el comando /tcpokemon</td><td>100</td></tr>' +
 			'</tbody></table><br /> Para comprar un artículo usa el comando /buy (artículo)' +
 			'<br /> Algunos artículos solo se pueden comprar contactando con un Administrador. Para más información usa /shophelp' +
@@ -2626,12 +2627,16 @@ var commands = exports.commands = {
 			"/tchtml (html) - Modifica la Tarjeta de entrenador personalizada.<br />" +
 			"/customsymbol (symbol) - Cambia el símbolo a uno personalizado, pero sin cambiar por ello el rango.<br />" +
 			"/resetsymbol - Reestablece el símbolo por omisión.<br />" +
+			"/botphrase (texto) - Establece la frase del Bot para el comando .whois.<br />" +
 			"<br />" +
 			"<b>Comandos Administrativos:</b><br /><br />" +
 			"/givemoney (user), (pds) - Da una cantidad de Pds a un usuario.<br />" +
 			"/removemoney (user), (pds) - Quita una cantidad de Pds a un usuario.<br />" +
 			"/symbolpermision (user), (on/off) - Da o Quita el permiso para usar Custom Symbols.<br />" +
+			"/pendigavatars - Muestra la lista de avtares personalizados pendientes por incluir.<br />" +
+			"/deavatarreq (user) - Eimina una solicitud de avatar de la lista.<br />" +
 			"/removetc (user) - Elimina una tarjeta de entrenador.<br />" +
+			"/setbotphrase (user), (text) - Modifica la frase del comando del Bot whois para un usuario.<br />" +
 			"/setcustomtc (user), (on/off) - Establece el permiso para usar una Tc personalizada.<br />" +
 			"/sethtmltc (user), (html) - Modifica la Tc personalizada de un usuario.<br />"
 		);
@@ -2645,7 +2650,7 @@ var commands = exports.commands = {
 		var article = toId(params[0]);
 		switch (article) {
 			case 'customtc':
-				prize = 10000;
+				prize = 8000;
 				if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
 				var tcUser = Shop.getTrainerCard(user.name);
 				if (!tcUser) {
@@ -2678,7 +2683,7 @@ var commands = exports.commands = {
 				return this.sendReply("Has comprado un Sprite de un pokemon para tu TC. Revisa /shophelp para más información.");
 				break;
 			case 'chatroom':
-				prize = 8000;
+				prize = 10000;
 				if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
 				if (params.length !== 2) return this.sendReply("Usa el comando así: /buy chatroom,[nombre]");
 				var id = toId(params[1]);
@@ -2693,7 +2698,7 @@ var commands = exports.commands = {
 				return this.sendReply("No se pudo realizar la compra debido a un error al crear la sala '" + params[1] + "'.");
 				break;
 			case 'symbol':
-				prize = 3000;
+				prize = 4000;
 				if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
 				if (Shop.symbolPermision(user.name)) return this.sendReply("Ya posees este artículo.");
 				Shop.setSymbolPermision(user.name, true);
@@ -2701,14 +2706,41 @@ var commands = exports.commands = {
 				return this.sendReply("Has comprado el permiso para usar los comandos /customsymbol y /resetsymbol. Para más información consulta /shophelp.");
 				break;
 			case 'avatar':
+				prize = 1000;
+				if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
+				if (!Config.customAvatars[user.userid]) return this.sendReply("No tenías un avatar personalizado.");
+				if (params.length !== 2) return this.sendReply("Usa el comando así: /buy avatar,[imagen]");
+				var err = Shop.addPendingAvatar(user.userid, params[1]);
+				if (err) return this.sendReply(err);
+				Shop.removeMoney(user.name, prize);
+				return this.sendReply("Has solicitado un cambio de tu avatar personalizado. Espera a que un admin revise tu compra.");
+				break;
 			case 'customavatar':
-				return this.sendReply("Para comprar este artículo dirígete a un administrador.");
+				prize = 8000;
+				if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
+				if (Config.customAvatars[user.userid]) return this.sendReply("Ya habías comprado este artículo. Para cambiar tu avatar compra la opcion Avatar");
+				if (params.length !== 2) return this.sendReply("Usa el comando así: /buy avatar,[imagen]");
+				var err = Shop.addPendingAvatar(user.userid, params[1]);
+				if (err) return this.sendReply(err);
+				Shop.removeMoney(user.name, prize);
+				return this.sendReply("Has solicitado un avatar personalizado. Espera a que un admin revise tu compra.");
+				break;
+			case 'botphrase':
+				prize = 1500;
+				if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
+				if (Shop.getBotPhrase(user.name)) return this.sendReply("Ya posees este articulo.");
+				if (params.length < 2) return this.sendReply("Usa el comando así: /buy botphrase, [texto]");
+				if (toId(params[1]) === 'off') return this.sendReply("Usa el comando así: /buy botphrase, [texto]");
+				if (params[1].length > 150) return this.sendReply("La frase es demasiado larga. Debe ser menor a 150 caracteres.");
+				Shop.changeBotPhrase(user.name, Tools.escapeHTML(target.substr(params[0].length + 1)));
+				Shop.removeMoney(user.name, prize);
+				return this.sendReply("Has comprado una frase personalizada para el comando .whois del Bot. Puedes cambiarla tantas veces como quieras con /botphrase.");
 				break;
 			default:
 				return this.sendReply("No has especificado ningún artículo válido.");
 		}
 	},
-
+	
 	money: 'pd',
 	pd: function (target, room, user) {
 		var autoData = false;
@@ -2875,6 +2907,26 @@ var commands = exports.commands = {
 		user.updateIdentity();
 		this.sendReply('Tu simbolo se ha restablecido.');
 	},
+	
+	setbotphrase: function (target, room, user) {
+		if (!this.can('givemoney')) return false;
+		if (!target) return this.sendReply("Usage: /setbotphrase [user], [phrase]");
+		var params = target.split(',');
+		if (!params || params.length < 2) return this.sendReply("Usage: /setbotphrase [user], [phrase]");
+		var targetUser = Users.get(params[0]);
+		if (!targetUser && toId(params[0]) !== 'off') return this.sendReply("El usuario " + toId(params[0]) + 'no está disponible en este momento.');
+		Shop.changeBotPhrase(params[0], target.substr(params[0].length + 1));
+		return this.sendReply("La frase descriptiva del usuario " + toId(params[0]) + ' ha sido modificada con exito.');
+	},
+	
+	botphrase: function (target, room, user) {
+		if (!Shop.getBotPhrase(user.name)) return this.sendReply("Debes comprar este articulo en la tienda antes de poder usarlo.");
+		if (!target) return this.sendReply("Usage: /botphrase texto");
+		if (toId(target) === 'off') return this.sendReply("Usage: /botphrase texto");
+		if (target.length > 150) return this.sendReply("La frase es demasiado larga. Debe ser menor a 150 caracteres.");
+		Shop.changeBotPhrase(user.name, Tools.escapeHTML(target));
+		return this.sendReply("Frase modificada con exito.");
+	},
 
 	removetc: function (target, room, user) {
 		if (!this.can('givemoney')) return false;
@@ -2983,6 +3035,21 @@ var commands = exports.commands = {
 		} else {
 			return this.sendReply("Error al cambiar los datos.");
 		}
+	},
+	
+	avatarespendientes: 'pendingavatars',
+	pendingavatars: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		this.sendReplyBox(Shop.getPendingAvatars());
+	},
+	
+	deavatarreq: 'deleteavatarrequest',
+	deleteavatarrequest: function (target, room, user) {
+		if (!this.can('givemoney')) return false;
+		if (!target) return this.sendReply("No has especificado ningun usuario.");
+		var err = Shop.deletePendingAvatar(target);
+		if (err) return this.sendReply(err);
+		this.sendReply("Solicitud de avatar eliminada");
 	},
 
 	/*********************************************************

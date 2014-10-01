@@ -1,6 +1,8 @@
 const pdDataFile = './config/shopmoney.json';
 const tcDataFile = './config/tcards.json';
 const symbolsDataFile = './config/symbolauth.json';
+const avatarsDataFile = './config/shopavatars.json';
+const botPhraseDataFile = './config/botphrases.json';
 
 var fs = require('fs');
 
@@ -12,14 +14,24 @@ if (!fs.existsSync(tcDataFile))
 	
 if (!fs.existsSync(symbolsDataFile))
 	fs.writeFileSync(symbolsDataFile, '{}');
+	
+if (!fs.existsSync(avatarsDataFile))
+	fs.writeFileSync(avatarsDataFile, '{}');
+	
+if (!fs.existsSync(botPhraseDataFile))
+	fs.writeFileSync(botPhraseDataFile, '{}');
 
 var money = JSON.parse(fs.readFileSync(pdDataFile).toString());
 var trainerCards = JSON.parse(fs.readFileSync(tcDataFile).toString());
 var customSymbols = JSON.parse(fs.readFileSync(symbolsDataFile).toString());
+var boughtAvatars = JSON.parse(fs.readFileSync(avatarsDataFile).toString());
+var botPhrase = JSON.parse(fs.readFileSync(botPhraseDataFile).toString());
 
 exports.money = money;
 exports.trainerCards = trainerCards;
 exports.customSymbols = customSymbols;
+exports.boughtAvatars = boughtAvatars;
+exports.botPhrase = botPhrase;
 
 function writePdData() {
 	fs.writeFileSync(pdDataFile, JSON.stringify(money));
@@ -31,6 +43,14 @@ function writeTcData() {
 
 function writeSymbolsData() {
 	fs.writeFileSync(symbolsDataFile, JSON.stringify(customSymbols));
+}
+
+function writeAvatarsData() {
+	fs.writeFileSync(avatarsDataFile, JSON.stringify(boughtAvatars));
+}
+
+function writePhrasesData() {
+	fs.writeFileSync(botPhraseDataFile, JSON.stringify(botPhrase));
 }
 
 exports.deleteValues = function (text) {
@@ -200,4 +220,45 @@ exports.setCustomTrainerCard = function (user, value) {
 	trainerCards[userId].customTC = value;
 	writeTcData();
 	return true;
+};
+//avatars
+exports.addPendingAvatar = function (user, url) {
+	var userId = toId(user);
+	if (boughtAvatars[userId]) return 'Ya tenias una solicitud de avatar pendiente, espera a que sea revisada por un administrador.';
+	boughtAvatars[userId] = url;
+	writeAvatarsData();
+	return false;
+};
+
+exports.deletePendingAvatar = function (user, url) {
+	var userId = toId(user);
+	if (!boughtAvatars[userId]) return 'El usuario no estaba en la lista de avatares pendientes.';
+	delete boughtAvatars[userId];
+	writeAvatarsData();
+	return false;
+};
+
+exports.getPendingAvatars = function () {
+	var html = '';
+	for (var i in boughtAvatars) {
+		html += '<b>' + i + '</b>: <a href="' + boughtAvatars[i] + '">' + boughtAvatars[i] + '</a><br />';
+	}
+	if (html === '') html = 'No hay avatares pendientes';
+	return html;
+};
+//bot
+exports.getBotPhrase = function (user) {
+	var userId = toId(user);
+	if (botPhrase[userId]) return botPhrase[userId];
+	return false;
+};
+
+exports.changeBotPhrase = function (user, text) {
+	var userId = toId(user);
+	if (botPhrase[userId] && toId(text) === 'off') {
+		delete botPhrase[userId];
+	} else {
+		botPhrase[userId] = text;
+	}
+	writePhrasesData();
 };
