@@ -714,13 +714,23 @@ exports.Formats = [
 
 	// Local Metagames
 	///////////////////////////////////////////////////////////////////
+
 	{
-		name: "Physical Special Swap",
-		section: "Local Metagames",
+		name: "1v1 (No Team Preview)",
+		section: 'Local Metagames',
 		column: 3,
 
-		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause', 'Swap Clause'],
-		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
+		ruleset: ['Pokemon', 'Standard', 'Swagger Clause'],
+		banlist: ['Arceus', 'Blaziken', 'Darkrai', 'Deoxys', 'Deoxys-Attack', 'Dialga', 'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh',
+			'Kyogre', 'Kyurem-White', 'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram', 'Shaymin-Sky', 'Xerneas', 'Yveltal',
+			'Zekrom', 'Focus Sash', 'Kangaskhanite', 'Soul Dew'
+		],
+		onBegin: function () {
+			this.p1.pokemon = this.p1.pokemon.slice(0, 1);
+			this.p1.pokemonLeft = this.p1.pokemon.length;
+			this.p2.pokemon = this.p2.pokemon.slice(0, 1);
+			this.p2.pokemonLeft = this.p2.pokemon.length;
+		}
 	},
 	{
 		name: "2v2 Doubles",
@@ -738,30 +748,6 @@ exports.Formats = [
 			'Arceus', 'Blaziken', 'Darkrai', 'Deoxys', 'Deoxys-Attack', 'Dialga', 'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh',
 			'Kyogre', 'Kyurem-White', 'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram', 'Shaymin-Sky', 'Xerneas', 'Yveltal', 'Zekrom'
 		],
-	},
-	{
-		name: "Protean Palace",
-		section: "Local Metagames",
-		ruleset: ['Pokemon', 'Standard', 'Team Preview'],
-		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
-		onPrepareHit: function (source, target, move) {
-			var type = move.type;
-			if (type && type !== '???' && source.getTypes().join() !== type) {
-				if (!source.setType(type)) return;
-				this.add('-start', source, 'typechange', type, '[from] Protean');
-			}
-		}
-	},
-	{
-		name: "Season of Sun",
-		section: "Local Metagames",
-		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
-		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Sunny Day', 'Hail', 'Rain Dance', 'Sand Storm'],
-		onSwitchIn: function (pokemon) {
-			if (pokemon.ability in {'drizzle':1, 'drought':1, 'snowwarning':1, 'sandstream':1}) pokemon.ignore['Ability'] = 1;
-			this.setWeather('sunnyday');
-			this.weatherData.duration = 0;
-		},
 	},
 	{
 		name: "Metagamiate",
@@ -788,10 +774,81 @@ exports.Formats = [
 		}
 	},
 	{
+		name: "Physical Special Swap",
+		section: "Local Metagames",
+
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause', 'Swap Clause'],
+		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
+	},
+	{
+		name: "Protean Palace",
+		section: "Local Metagames",
+		ruleset: ['Pokemon', 'Standard', 'Team Preview'],
+		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite'],
+		onPrepareHit: function (source, target, move) {
+			var type = move.type;
+			if (type && type !== '???' && source.getTypes().join() !== type) {
+				if (!source.setType(type)) return;
+				this.add('-start', source, 'typechange', type, '[from] Protean');
+			}
+		}
+	},
+	{
 		name: "Same Type Stealth Rock",
 		section: "Local Metagames",
 		mod: 'stsr',
 		ruleset: ['OU']
+	},
+	{
+		name: "Season of Sun",
+		section: "Local Metagames",
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
+		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Sunny Day', 'Hail', 'Rain Dance', 'Sand Storm'],
+		onSwitchIn: function (pokemon) {
+			if (pokemon.ability in {'drizzle':1, 'drought':1, 'snowwarning':1, 'sandstream':1}) pokemon.ignore['Ability'] = 1;
+			this.setWeather('sunnyday');
+			this.weatherData.duration = 0;
+		},
+	},
+	{
+		name: "Startermons",
+		section: 'Local Metagames',
+
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
+		banlist: ['Soul Dew', 'Charizardite X', 'Charizardite Y', 'Venusaurite', 'Blastoisinite', 'Blazikenite', 'Blaziken + Speed Boost'],
+		validateSet: function (set) {
+			var validStarters = {
+				"Bulbasaur":1, "Ivysaur":1, "Venusaur":1, "Charmander":1, "Charmeleon":1, "Charizard":1, "Squirtle":1, "Wartortle":1, "Blastoise":1,
+				"Chikorita":1, "Bayleef":1, "Meganium":1, "Cyndaquil":1, "Quilava":1, "Typhlosion":1, "Totodile":1, "Croconaw":1, "Feraligatr":1,
+				"Treecko":1, "Grovyle":1, "Sceptile":1, "Torchic":1, "Combusken":1, "Blaziken":1, "Mudkip":1, "Marshtomp":1, "Swampert":1,
+				"Turtwig":1, "Grotle":1, "Torterra":1, "Chimchar":1, "Monferno":1, "Infernape":1, "Piplup":1, "Prinplup":1, "Empoleon":1,
+				"Snivy":1, "Servine":1, "Serperior":1, "Tepig":1, "Pignite":1, "Emboar":1, "Oshawott":1, "Dewott":1, "Samurott":1,
+				"Chespin":1, "Quilladin":1, "Chesnaught":1, "Fennekin":1, "Braixen":1, "Delphox":1, "Froakie":1, "Frogadier":1, "Greninja":1,
+				"Pikachu":1, "Raichu":1
+			};
+			if (!(set.species in validStarters)) {
+				return [set.species + " is not a starter."];
+			}
+		},
+		validateTeam: function (team) {
+			var problems = [];
+			var hasOneOfEach = true;
+			var gens = [0, 0, 0, 0, 0, 0];
+			for (var i = 0; i < team.length; i++) {
+				var pokemon = Tools.getTemplate(team[i].species || team[i].name);
+				if (pokemon.num <= 151) ++gens[0];
+				else if (pokemon.num <= 251) ++gens[1];
+				else if (pokemon.num <= 386) ++gens[2];
+				else if (pokemon.num <= 494) ++gens[3];
+				else if (pokemon.num <= 649) ++gens[4];
+				else if (pokemon.num <= 721) ++gens[5];
+			}
+			for (var j in gens) {
+				if (gens[j] > 1) hasOneOfEach = false;
+			}
+			if (!hasOneOfEach) problems.push('You must bring a Pokemon of each gen.');
+			return problems;
+		}
 	},
 
 	// BW2 Singles
