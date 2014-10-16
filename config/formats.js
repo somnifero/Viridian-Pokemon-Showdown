@@ -744,10 +744,23 @@ exports.Formats = [
 			this.p2.pokemonLeft = this.p2.pokemon.length;
 		},
 		ruleset: ['Pokemon', 'Standard', 'Team Preview 2v2'],
-		banlist: ['Kangaskhanite', 'Soul Dew',
-			'Arceus', 'Blaziken', 'Darkrai', 'Deoxys', 'Deoxys-Attack', 'Dialga', 'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh',
-			'Kyogre', 'Kyurem-White', 'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram', 'Shaymin-Sky', 'Xerneas', 'Yveltal', 'Zekrom'
+		banlist: ['Dark Void', 'Perish song', 'Explosion', 'Self Destruct', 'Mewtwo', 'Lugia', 'Ho-Oh', 'Kyogre', 'Groudon', 'Rayquaza', 'Dialga',
+			'Palkia', 'Giratina', 'Giratina-Origin', 'Arceus', 'Reshiram', 'Zekrom', 'Kyurem-White', 'Xerneas', 'Yveltal', 'Deoxys-a'
 		],
+	},
+	{
+		name: "Mega Tier",
+		section: "Local Metagames",
+		mod: 'megatier',
+		ruleset: ['OU'],
+		validateSet: function(set) {
+			var template = this.getTemplate(set.species || set.name);
+			var item = this.getItem(set.item);
+			if (!item.megaStone) return template.species + ' has not its mega stone.';
+			var templateItem = this.getTemplate(item.megaStone);
+			if (!templateItem.isMega) return template.species + ' can\'t mega evolve.';
+			if (template.baseSpecies !== templateItem.baseSpecies && template.species !== templateItem.baseSpecies) return template.species + ' can\'t mega evolve.';
+		}
 	},
 	{
 		name: "Metagamiate",
@@ -798,17 +811,6 @@ exports.Formats = [
 		section: "Local Metagames",
 		mod: 'stsr',
 		ruleset: ['OU']
-	},
-	{
-		name: "Season of Sun",
-		section: "Local Metagames",
-		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
-		banlist: ['Uber', 'Soul Dew', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Sunny Day', 'Hail', 'Rain Dance', 'Sand Storm'],
-		onSwitchIn: function (pokemon) {
-			if (pokemon.ability in {'drizzle':1, 'drought':1, 'snowwarning':1, 'sandstream':1}) pokemon.ignore['Ability'] = 1;
-			this.setWeather('sunnyday');
-			this.weatherData.duration = 0;
-		},
 	},
 	{
 		name: "Startermons",
