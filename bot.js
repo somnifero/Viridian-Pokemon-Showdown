@@ -549,22 +549,22 @@ var commands = {
 		if (!targetUser) return this.sendReply('No se nada acerca de ' + toId(target) + '.');
 		switch (targetUser.group) {
 			case '~':
-				shopData = 'Administrador del servidor viridian';
+				shopData = 'Administrador del servidor Viridian';
 				break;
 			case '&':
-				shopData = 'Leader del servidor viridian';
+				shopData = 'Leader del servidor Viridian';
 				break;
 			case '@':
-				shopData = 'Moderador del servidor viridian';
+				shopData = 'Moderador del servidor Viridian';
 				break;
 			case '%':
-				shopData = 'Driver del servidor viridian';
+				shopData = 'Driver del servidor Viridian';
 				break;
 			case '+':
-				shopData = 'Voiced del servidor viridian';
+				shopData = 'Voiced del servidor Viridian';
 				break;
 			default:
-				shopData = 'Usuario del servidor viridian';
+				shopData = 'Usuario del servidor Viridian';
 		}
 		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData );
 	},
@@ -763,6 +763,21 @@ var commands = {
 		var botDelay = (Math.floor(Math.random() * 6) * 1000)
 		setTimeout(function() {
 			connection.sendTo(room, Bot.config.name + ' has joined ' +  target + ' room.');
+		}, botDelay);
+	},
+	
+	autojoin: function (target, room, user, connection) {
+		if (!user.can('hotpatch')) return;
+		var rooms = "";
+		for (var id in Rooms.rooms) {
+			if (id !== 'global' && (Rooms.rooms[id].isOfficial || id === 'staff' || id === 'test') && !Rooms.get(id).users[Bot.config.name]) {
+				Users.get(Bot.config.name).joinRoom(Rooms.get(id));
+				rooms += id + ", ";
+			}
+		}
+		var botDelay = (Math.floor(Math.random() * 6) * 1000)
+		setTimeout(function() {
+			connection.sendTo(room, Bot.config.name + ' has joined these rooms: ' + rooms);
 		}, botDelay);
 	},
 
