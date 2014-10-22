@@ -1417,8 +1417,8 @@ var commands = exports.commands = {
 			"/miembrosclan (clan/miembro) - muestra los miembros con los que cuenta un clan.<br />" +
 			"/clanauth (clan/miembro) - muestra la jerarquía de miembros de un clan.<br />" +
 			"/warlog (clan/miembro) - muestra las 10 últimas wars de un clan.<br />" +
-			"/invitarclan - Invita a un usuario a unirse al clan. Requiere ser Oficial o Líder del clan.<br />" +
-			"/expulsarclan (miembro) - Expulsa a un miembro del clan. Requiere ser Líder del clan.<br />" +
+			"/invitarclan - Invita a un usuario a unirse al clan. Requiere ser Oficial del clan.<br />" +
+			"/expulsarclan (miembro) - Expulsa a un miembro del clan. Requiere ser sub-lider del clan.<br />" +
 			"/aceptarclan (clan) - Acepta una invitación al clan.<br />" +
 			"/invitacionesclan (clan/miembro) - Lista a los usuarios invitados a un clan.<br />" +
 			"/borrarinvitaciones - Borra las invitaciones pendientes al Clan. Requiere ser líder del clan.<br />" +
@@ -1426,13 +1426,14 @@ var commands = exports.commands = {
 			"<br />" +
 			"<big><b>Comandos de Clan-Auth:</b></big><br /><br />" +
 			"/liderclan (miembro) - Nombra a un miembro líder del clan. Requiere ~<br />" +
-			"/oficialclan (miembro) - Nombra a un miembro oficial del clan. Requiere ser Líder del clan.<br />" +
+			"/subliderclan (miembro) - Nombra a un miembro sub-líder del clan. Requiere ser Líder del clan.<br />" +
+			"/oficialclan (miembro) - Nombra a un miembro oficial del clan. Requiere ser sub-lider del clan.<br />" +
 			"/demoteclan (miembro) - Borra a un miembro del staff del clan. Requiere ser Líder del clan y ~ para demotear a un Líder.<br />" +
 			"/lemaclan (lema) - Establece el Lema del clan. Requiere ser líder del clan.<br />" +
 			"/logoclan (logo) - Establece el Logotipo del clan. Requiere ser líder del clan.<br />" +
 			"/closeclanroom - Bloquea una sala de clan a todos los que no sean miembros de dicho clan, salvo administradores.<br />" +
 			"/openclanroom - Elimina el bloqueo del comando /closeclanroom.<br />" +
-			"/fjg - Llama a la sala a los miembros del clan que no lo estaban.<br />" +
+			"/llamarmiembros o /fjg - Llama a los miembros de un clan a su sala.<br />" +
 			"/rk o /roomkick - Expulsa a un usuario de una sala. Requiere @ o superior.<br />" +
 			"<br />" +
 			"<big><b>Comandos de Administración:</b></big><br /><br />" +
@@ -1445,19 +1446,7 @@ var commands = exports.commands = {
 			"/setsalaclan &lt;clan>,&lt;sala> - Establece una sala para un clan.<br />" +
 			"/setgxeclan &lt;clan>,&lt;wins>,&lt;losses>,&lt;draws> - Establece la puntuación de un clan.<br />" +
 			"/serankclan &lt;clan>,&lt;puntos> - Establece la puntuación de un clan.<br />" +
-			"/settitleclan &lt;clan>&lt;puntos> - Estable un título para el clan.<br />" +
-			"<br />" +
-			"<big><b>Comandos de Wars:</b></big><br /><br />" +
-			"/war &lt;formato>, &lt;tamano>, &lt;clan 1>, &lt;clan 2> - Incia una war entre 2 clanes. Requiere +<br />" +
-			"/totalwar &lt;formato>, &lt;tamano>, &lt;clan 1>, &lt;clan 2> - Incia una war total entre 2 clanes. Requiere +<br />" +
-			"/endwar - Finaliza una war. Requiere +<br />" +
-			"/vw - Muestra el estado de la war.<br />" +
-			"/jw o /joinwar - Comando para unirse a una war.<br />" +
-			"/lw o /leavewar - Comando para salir de una war.<br />" +
-			"/warkick - Fuerza a un usuario a abandonar una war. Requiere %<br />" +
-			"/wardq - Descalifica a un usuario. Requiere % o autoridad en el clan.<br />" +
-			"/warreplace &lt;usuario 1>, &lt;usuario 2> - Comando para reemplazar. Requiere % o autoridad en el clan.<br />" +
-			"/warinvalidate &lt;participante> - Deniega la validez de una batalla o un resultado. Requiere @<br />"
+			"/settitleclan &lt;clan>&lt;puntos> - Estable un título para el clan.<br />"
 		);
 	},
 
@@ -1485,9 +1474,15 @@ var commands = exports.commands = {
 	clans: function (target, room, user) {
 		if (!this.canBroadcast()) return false;
 		var clansTableTitle = "Lista de Clanes";
-		if (toId(target) === 'rank' || toId(target) === 'puntos') clansTableTitle = "Lista de Clanes por Puntuaci&oacute;n";
-		if (toId(target) === 'miembros' || toId(target) === 'members') clansTableTitle = "Lista de Clanes por Miembros";
-		var clansTable = '<br /><center><big><big><strong>' + clansTableTitle + '</strong></big></big><center><br /><table class="clanstable" width="100%" border="1"><tr><td><center><strong>Clan</strong></center></td><td><center><strong>Miembros</strong></center></td><td><center><strong>Sala</strong></center></td><td><center><strong>GXE</strong></center></td><td><center><strong>Puntuaci&oacute;n</strong></center></td></tr>';
+		if (toId(target) === 'rank' || toId(target) === 'puntos' || toId(target) === 'prestigio' || toId(target) === 'puntuacion') {
+			target = "rank";
+			clansTableTitle = "Lista de Clanes por Puntuaci&oacute;n";
+		}
+		if (toId(target) === 'miembros' || toId(target) === 'members') {
+			target = "members";
+			clansTableTitle = "Lista de Clanes por Miembros";
+		}
+		var clansTable = '<center><big><big><strong>' + clansTableTitle + '</strong></big></big><center><br /><table class="clanstable" width="100%" border="1" cellspacing="0" cellpadding="3" target="_blank"><tr><td><center><strong>Clan</strong></center></td><td><center><strong>Nombre Completo</strong></center></td><td><center><strong>Miembros</strong></center></td><td><center><strong>Sala</strong></center></td><td><center><strong>Wars</strong></center></td><td><center><strong>Puntuaci&oacute;n</strong></center></td></tr>';
 		var clansList = Clans.getClansList(toId(target));
 		var auxRating = {};
 		var nMembers = 0;
@@ -1495,17 +1490,16 @@ var commands = exports.commands = {
 		var auxGxe = 0;
 		for (var m in clansList) {
 			auxRating = Clans.getElementalData(m);
-			auxGxe = Math.floor(auxRating.gxe * 100) / 100;
 			membersClan = Clans.getMembers(m);
 			if (!membersClan) {
 				nMembers = 0;
 			} else {
 				nMembers = membersClan.length;
 			}
-			clansTable += '<tr><td><center>' + Tools.escapeHTML(Clans.getClanName(m)) + '</center></td><td><center>' + nMembers + '</center></td><td><center>' + '<button name="send" value="/join ' + Tools.escapeHTML(auxRating.sala) + '" target="_blank">' + Tools.escapeHTML(auxRating.sala) + '</button>' + '</center></td><td><center>' + auxGxe + '</center></td><td><center>' + auxRating.rating + '</center></td></tr>';
+			clansTable += '<tr><td><center>' + Tools.escapeHTML(Clans.getClanName(m)) + '</center></td><td><center>' +Tools.escapeHTML(auxRating.compname) + '</center></td><td><center>' + nMembers + '</center></td><td><center>' + '<button name="send" value="/join ' + Tools.escapeHTML(auxRating.sala) + '" target="_blank">' + Tools.escapeHTML(auxRating.sala) + '</button>' + '</center></td><td><center>' + (auxRating.wins + auxRating.losses + auxRating.draws) + '</center></td><td><center>' + auxRating.rating + '</center></td></tr>';
 		}
 		clansTable += '</table>';
-		this.sendReplyBox(clansTable);
+		this.sendReply("|raw| " + clansTable);
 	},
 
 	clanauth: function (target, room, user) {
@@ -1528,21 +1522,25 @@ var commands = exports.commands = {
 			return;
 		}
 		//html codes for clan ranks
-		var leaderClanSource = Clans.getAuthMembers(target, 2);
+		var leaderClanSource = Clans.getAuthMembers(target, 3);
 		if (leaderClanSource !== "") {
 			leaderClanSource = "<big><b>Líderes</b></big><br /><br />" + leaderClanSource + "</b></big></big><br /><br />";
+		}
+		var subLeaderClanSource = Clans.getAuthMembers(target, 2);
+		if (subLeaderClanSource !== "") {
+			subLeaderClanSource = "<big><b>Sub-Líderes</b></big><br /><br />" + subLeaderClanSource + "</b></big></big><br /><br />";
 		}
 		var oficialClanSource = Clans.getAuthMembers(target, 1);
 		if (oficialClanSource !== "") {
 			oficialClanSource = "<big><b>Oficiales</b></big><br /><br />" + oficialClanSource + "</b></big></big><br /><br />";
 		}
-		var memberClanSource = Clans.getAuthMembers(target, false);
+		var memberClanSource = Clans.getAuthMembers(target, 0);
 		if (memberClanSource !== "") {
 			memberClanSource = "<big><b>Resto de Miembros</b></big><br /><br />" + memberClanSource + "</b></big></big><br /><br />";
 		}
 
 		this.sendReplyBox(
-			"<center><big><big><b>Jerarquía del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + leaderClanSource + oficialClanSource + memberClanSource + '</center>'
+			"<center><big><big><b>Jerarquía del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + leaderClanSource + subLeaderClanSource + oficialClanSource + memberClanSource + '</center>'
 		);
 	},
 
@@ -1635,8 +1633,10 @@ var commands = exports.commands = {
 		var clanTitle = "";
 		if (memberClanProfile) {
 			var authValue = Clans.authMember(target, clanMember);
-			if (authValue === 2) {
+			if (authValue === 3) {
 				clanTitle = clanMember + " - Líder del clan " + clan.compname;
+			} else if (authValue === 2) {
+				clanTitle = clanMember + " - Sub-Líder del clan " + clan.compname;
 			} else if (authValue === 1) {
 				clanTitle = clanMember + " - Oficial del clan " + clan.compname;
 			} else {
@@ -1652,7 +1652,7 @@ var commands = exports.commands = {
 			}
 		}
 		this.sendReplyBox(
-			'<div id="fichaclan">' +
+			'<div class="fichaclan">' +
 			'<h4><center><p> <br />' + Tools.escapeHTML(clanTitle) + '</center></h4><hr width="90%" />' +
 			'<table width="90%" border="0" align="center"><tr><td width="180" rowspan="2"><div align="center"><img src="' + encodeURI(clan.logo) +
 			'" width="160" height="160" /></div></td><td height="64" align="left" valign="middle"><span class="lemaclan">'+ Tools.escapeHTML(clan.lema) +
@@ -1735,7 +1735,7 @@ var commands = exports.commands = {
 			this.sendReply("La nueva sala del clan " + params[0] + " ha sido establecida con éxito.");
 		}
 	},
-
+	
 	giveclanmedal: function (target) {
 		if (!this.can('clans')) return false;
 		var params = target.split(',');
@@ -1747,7 +1747,7 @@ var commands = exports.commands = {
 			this.sendReply("Has entegado una medalla al clan " + params[0]);
 		}
 	},
-
+	
 	removeclanmedal: function (target) {
 		if (!this.can('clans')) return false;
 		var params = target.split(',');
@@ -1768,7 +1768,7 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 2) permisionClan = true;
+			if (perminsionvalue === 3) permisionClan = true;
 			if (!permisionClan && !this.can('clans')) return false;
 		} else {
 			return false;
@@ -1793,7 +1793,7 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 2) permisionClan = true;
+			if (perminsionvalue === 3) permisionClan = true;
 			if (!permisionClan && !this.can('clans')) return false;
 		} else {
 			return false;
@@ -1805,6 +1805,38 @@ var commands = exports.commands = {
 			else {
 				this.addModCommand("Un nuevo logotipo para el clan " + clanUser + " ha sido establecido por " + user.name);
 			}
+		} else {
+			this.sendReply("Este comando solo puede ser usado en la sala del clan.");
+		}
+	},
+
+	llamarmiembros: 'fjg',
+	fjg: function (target, room, user) {
+		var permisionClan = false;
+		var clanUser = Clans.findClanFromMember(user.name);
+		if (clanUser) {
+			var clanUserid = toId(clanUser);
+			var iduserwrit = toId(user.name);
+			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionvalue === 2 || perminsionvalue === 3) permisionClan = true;
+			if (!permisionClan && !this.can('clans')) return false;
+		} else {
+			return false;
+		}
+		var claninfo = Clans.getElementalData (clanUser);
+		if (room && room.id === toId(claninfo.sala)) {
+			var clanMembers = Clans.getMembers(clanUser);
+			var targetUser;
+			for (var i = 0; i < clanMembers.length; ++i) {
+				if (!room.users[toId(clanMembers[i])]) {
+					targetUser = Users.get(clanMembers[i])
+					if (targetUser && targetUser.connected) {
+						targetUser.joinRoom(room.id);
+						targetUser.popup('Has sido llamado a la sala ' + claninfo.sala.trim() + ' por ' + user.name + '.');
+					}
+				}
+			}
+			this.addModCommand("Los miembros del clan " + clanUser + " han sido llamados a la sala " + toId(claninfo.sala) + ' por ' + user.name + '.');
 		} else {
 			this.sendReply("Este comando solo puede ser usado en la sala del clan.");
 		}
@@ -1849,7 +1881,7 @@ var commands = exports.commands = {
 		var permisionClan = false;
 		var params = target.split(',');
 		if (!params) {
-				return this.sendReply("Usage: /demoteclan member");
+				return this.sendReply("Usage: /oficialclan member");
 		}
 		var clanUser = Clans.findClanFromMember(user.name);
 		var clanTarget = Clans.findClanFromMember(params[0]);
@@ -1858,7 +1890,7 @@ var commands = exports.commands = {
 			var userb = toId(params[0]);
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 2 && clanTarget === clanUser) permisionClan = true;
+			if ((perminsionvalue === 2 || perminsionvalue === 3) && clanTarget === clanUser) permisionClan = true;
 		}
 		if (!permisionClan && !this.can('clans')) return;
 		var userk = Users.getExact(params[0]);
@@ -1866,13 +1898,45 @@ var commands = exports.commands = {
 		if (clanTarget) {
 			var clanId = toId(clanTarget);
 			var userId = toId(params[0]);
-			if (Clans.authMember(clanId, userId) === 2 && !this.can('clans')) return false;
+			if ((Clans.authMember(clanId, userId) > 2 && !this.can('clans')) || (Clans.authMember(clanId, userId) === 2 && perminsionValue < 3 && !this.can('clans'))) return false;
 		}
 		if (!Clans.addOficial(params[0]))
 			this.sendReply("El usuario no existe, no pertenece a ningún clan o ya era oficial de su clan.");
 		else {
 			this.sendReply("Usuario: " + userk.name + " nombrado correctamente oficial del clan " + clanTarget + ".");
 			userk.popup(user.name + " te ha nombrado Oficial del clan " + clanTarget + ".\nUtiliza el comando /clanhelp para más información.");
+		}
+	},
+	
+	clansubleader: 'subliderclan',
+	subliderclan: function (target, room, user) {
+		var permisionClan = false;
+		var params = target.split(',');
+		if (!params) {
+				return this.sendReply("Usage: /subliderclan member");
+		}
+		var clanUser = Clans.findClanFromMember(user.name);
+		var clanTarget = Clans.findClanFromMember(params[0]);
+		if (clanUser) {
+			var clanUserid = toId(clanUser);
+			var userb = toId(params[0]);
+			var iduserwrit = toId(user.name);
+			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionvalue === 3 && clanTarget === clanUser) permisionClan = true;
+		}
+		if (!permisionClan && !this.can('clans')) return;
+		var userk = Users.getExact(params[0]);
+		if (!userk || !userk.connected) return this.sendReply("Usuario: " + params[0] + " no existe o no está disponible.");
+		if (clanTarget) {
+			var clanId = toId(clanTarget);
+			var userId = toId(params[0]);
+			if ((Clans.authMember(clanId, userId) > 2 && !this.can('clans')) || (Clans.authMember(clanId, userId) === 2 && perminsionValue < 3 && !this.can('clans'))) return false;
+		}
+		if (!Clans.addSubLeader(params[0]))
+			this.sendReply("El usuario no existe, no pertenece a ningún clan o ya era sub-lider de su clan.");
+		else {
+			this.sendReply("Usuario: " + userk.name + " nombrado correctamente sub-lider del clan " + clanTarget + ".");
+			userk.popup(user.name + " te ha nombrado Sub-Lider del clan " + clanTarget + ".\nUtiliza el comando /clanhelp para más información.");
 		}
 	},
 
@@ -1891,7 +1955,7 @@ var commands = exports.commands = {
 			var userb = toId(params[0]);
 			var iduserwrit = toId(user.name);
 			var perminsionValue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionValue === 2 && clanTarget === clanUser) permisionClan = true;
+			if (perminsionValue >= 2 && clanTarget === clanUser) permisionClan = true;
 		}
 		if (!permisionClan && !this.can('clans')) return;
 		var userk = Users.getExact(params[0]);
@@ -1900,7 +1964,7 @@ var commands = exports.commands = {
 		} else {
 			var clanId = toId(clanTarget);
 			var userId = toId(params[0]);
-			if (Clans.authMember(clanId, userId) === 2 && !this.can('clans')) return false;
+			if ((Clans.authMember(clanId, userId) > 2 && !this.can('clans')) || (Clans.authMember(clanId, userId) === 2 && perminsionValue < 3 && !this.can('clans'))) return false;
 		}
 		if (!Clans.deleteLeader(params[0])) {
 			if (!Clans.deleteOficial(params[0])) {
@@ -1929,10 +1993,9 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var iduserwrit = toId(user.name);
 			var permisionValue = Clans.authMember(clanUserid, iduserwrit);
-			if (permisionValue === 1) permisionClan = true;
-			if (permisionValue === 2) permisionClan = true;
+			if (permisionValue > 0) permisionClan = true;
 		}
-		if (!permisionClan) return false;
+		if (!permisionClan) return this.sendReply("/invitarclan - Acceso denegado");
 		var params = target.split(',');
 		if (!params) return this.sendReply("Usage: /invitarclan user");
 		var userk = Users.getExact(params[0]);
@@ -1971,7 +2034,7 @@ var commands = exports.commands = {
 				var clanUserid = toId(clanUser);
 				var iduserwrit = toId(user.name);
 				var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-				if (perminsionvalue === 2) permisionClan = true;
+				if (perminsionvalue === 3) permisionClan = true;
 			}
 			if (!permisionClan) return false;
 		} else {
@@ -1989,7 +2052,6 @@ var commands = exports.commands = {
 		if (!this.can('clans')) return false;
 		var params = target.split(',');
 		if (params.length !== 2) return this.sendReply("Usage: /removeclanmember clan, member");
-
 		if (!Clans.removeMember(params[0], params[1]))
 			this.sendReply("Could not remove the user from the clan. Does the clan exist or has the user already been removed from it?");
 		else {
@@ -2002,7 +2064,7 @@ var commands = exports.commands = {
 		var permisionClan = false;
 		var params = target.split(',');
 		if (!params) {
-				return this.sendReply("Usage: /demoteclan member");
+				return this.sendReply("Usage: /expulsarclan member");
 		}
 		var clanUser = Clans.findClanFromMember(user.name);
 		var clanTarget = Clans.findClanFromMember(params[0]);
@@ -2011,13 +2073,13 @@ var commands = exports.commands = {
 			var userb = toId(params[0]);
 			var iduserwrit = toId(user.name);
 			var perminsionValue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionValue === 2 && clanTarget === clanUser) permisionClan = true;
+			if (perminsionValue >= 2 && clanTarget === clanUser) permisionClan = true;
 		}
 		if (!permisionClan && !this.can('clans')) return;
-		var currentWar = Clans.findWarFromClan(clanTarget);
+		var currentWar = War.findClan(clanTarget);
 		if (currentWar) {
-			var currentWarParticipants = Clans.getWarParticipants(currentWar);
-			if (currentWarParticipants.clanAMembers[toId(params[0])] || currentWarParticipants.clanBMembers[toId(params[0])]) return this.sendReply("No puedes expulsar del clan si el miembro estaba participando en una war.");
+			var currentWarParticipants = War.getTourData(currentWar);
+			if (currentWarParticipants.teamAMembers[toId(params[0])] || currentWarParticipants.teamBMembers[toId(params[0])]) return this.sendReply("No puedes expulsar del clan si el miembro estaba participando en una war.");
 		}
 		var userk = Users.getExact(params[0]);
 		if (!clanTarget) {
@@ -2025,7 +2087,7 @@ var commands = exports.commands = {
 		} else {
 			var clanId = toId(clanTarget);
 			var userId = toId(params[0]);
-			if (Clans.authMember(clanId, userId) === 2 && !this.can('clans')) return false;
+			if ((Clans.authMember(clanId, userId) > 2 && !this.can('clans')) || (Clans.authMember(clanId, userId) === 2 && perminsionValue < 3 && !this.can('clans'))) return false;
 		}
 		if (!Clans.removeMember(clanTarget, params[0])) {
 			this.sendReply("El usuario no pudo ser expulsado del clan.");
@@ -2045,10 +2107,10 @@ var commands = exports.commands = {
 		if (!clanUser) {
 			return this.sendReply("No perteneces a ningún clan.");
 		}
-		var currentWar = Clans.findWarFromClan(clanUser);
+		var currentWar = War.findClan(clanUser);
 		if (currentWar) {
-			var currentWarParticipants = Clans.getWarParticipants(currentWar);
-			if (currentWarParticipants.clanAMembers[toId(user.name)] || currentWarParticipants.clanBMembers[toId(user.name)]) return this.sendReply("No puedes salir del clan si estabas participando en una war.");
+			var currentWarParticipants = War.getTourData(currentWar);
+			if (currentWarParticipants.teamAMembers[toId(user.name)] || currentWarParticipants.teamBMembers[toId(user.name)]) return this.sendReply("No puedes salir del clan si estabas participando en una war.");
 		}
 		if (!Clans.removeMember(clanUser, user.name)) {
 			 this.sendReply("Error al intentar salir del clan.");
@@ -2060,396 +2122,28 @@ var commands = exports.commands = {
 
 
 	//new war system
-
+	resetclanranking: function (target, room, user) {
+		if (!this.can('clans')) return false;
+		if (room.id !== 'staff') return this.sendReply("Este comando solo puede ser usado en la sala Staff");
+		Clans.resetClansRank();
+		this.addModCommand(user.name + " ha reiniciado el ranking de clanes.");
+	},
+	
 	pendingwars: 'wars',
 	wars: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
-		this.sendReplyBox(Clans.getPendingWars());
+		this.parse("/war search");
 	},
 
 	viewwar: 'vw',
 	warstatus: 'vw',
 	vw: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
-		if (!room.isOfficial) return this.sendReply("Este comando solo puede ser usado en salas Oficiales.");
-			var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (currentWarData.warRound === 0) {
-			this.sendReply('|raw| <hr /><h2><font color="green">' + ' Inscríbanse a la war en formato ' +  Clans.getWarFormatName(currentWarData.format) + ' entre los clanes ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) +  '. Para unirte escribe </font> <font color="red">/joinwar</font> <font color="green">.</font></h2><b><font color="blueviolet">Jugadores por clan:</font></b> ' + currentWarData.warSize + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Clans.getWarFormatName(currentWarData.format) + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la war.</b></font>');
-		} else {
-			var warType = "";
-			if (currentWarData.warStyle === 2) warType = " total";
-			var htmlSource = '<hr /><h3><center><font color=green><big>War' + warType + ' entre ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + Clans.getWarFormatName(currentWarData.format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small></center><br />";
-			for (var t in currentWarParticipants.byes) {
-				var userFreeBye = Users.getExact(t);
-				if (!userFreeBye) {userFreeBye = t;} else {userFreeBye = userFreeBye.name;}
-				htmlSource += '<center><small><font color=green>' + userFreeBye + ' ha pasado a la siguiente ronda.</font></small></center><br />';
-			}
-			var clanDataA = Clans.getProfile(currentWar);
-			var clanDataB = Clans.getProfile(currentWarData.against);
-			var matchupsTable = '<table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(clanDataA.logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
-			for (var i in currentWarParticipants.matchups) {
-				var userk = Users.getExact(currentWarParticipants.matchups[i].from);
-				if (!userk) {userk = currentWarParticipants.matchups[i].from;} else {userk = userk.name;}
-				var userf = Users.getExact(currentWarParticipants.matchups[i].to);
-				if (!userf) {userf = currentWarParticipants.matchups[i].to;} else {userf = userf.name;}
-				switch (currentWarParticipants.matchups[i].result) {
-					case 0:
-					matchupsTable += '<tr><td  align="right"><big>' + userk + '</big></td><td>&nbsp;vs&nbsp;</td><td><big align="left">' + userf + "</big></td></tr>";
-					break;
-					case 1:
-					matchupsTable += '<tr><td  align="right"><a href="/' + currentWarParticipants.matchups[i].battleLink +'" room ="' + currentWarParticipants.matchups[i].battleLink + '" class="ilink"><b><big>' + userk + '</big></b></a></td><td>&nbsp;<a href="/' + currentWarParticipants.matchups[i].battleLink + '" room ="' + currentWarParticipants.matchups[i].battleLink + '" class="ilink">vs</a>&nbsp;</td><td><a href="/' + currentWarParticipants.matchups[i].battleLink + '" room ="' + currentWarParticipants.matchups[i].battleLink + '" class="ilink"><b><big align="left">' + userf + "</big></b></a></td></tr>";
-					break;
-					case 2:
-					matchupsTable += '<tr><td  align="right"><font color="green"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="red"><b><big align="left">' + userf + "</big></b></font></td></tr>";
-					break;
-					case 3:
-					matchupsTable += '<tr><td  align="right"><font color="red"><b><big>' + userk + '</big></b></font></td><td>&nbsp;vs&nbsp;</td><td><font color="green"><b><big align="left">' + userf + "</big></b></font></td></tr>";
-					break;
-				}
-			}
-			matchupsTable += '</table></td><td>&nbsp;&nbsp;&nbsp;&nbsp;<img width="100" height="100" src="' + encodeURI(clanDataB.logo) + '" /></td></tr></table><hr />';
-			htmlSource += matchupsTable;
-			this.sendReply('|raw| ' + htmlSource);
-		}
-
+		this.parse("/war round");
 	},
-
-	standardwar: 'war',
-	war: function (target, room, user) {
-		var permisionCreateWar = false;
-		if (user.group === '+' || user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionCreateWar = true;
-		//if (room.auth && room.auth[user.userid]) permisionCreateWar = true;
-		if (!permisionCreateWar  && !this.can('wars')) return false;
-		if (!room.isOfficial) return this.sendReply("Este comando solo puede ser usado en salas Oficiales.");
-		if (Clans.findWarFromRoom(room.id)) return this.sendReply("Ya había una war en curso en esta sala.");
-		var params = target.split(',');
-		if (params.length !== 4) return this.sendReply("Usage: /war formato, tamaño, clanA, clanB");
-		if (!Clans.getWarFormatName(params[0])) return this.sendReply("El formato especificado para la war no es válido.");
-		params[1] = parseInt(params[1]);
-		if (params[1] < 3 || params[1] > 100) return this.sendReply("El tamaño de la war no es válido.");
-
-		if (!Clans.createWar(params[2], params[3], room.id, params[0], params[1], 1)) {
-			this.sendReply("Alguno de los clanes especificados no existía o ya estaba en war.");
-		} else {
-			this.logModCommand(user.name + " ha iniciado una war standard entre los clanes " + Clans.getClanName(params[2]) + " y " + Clans.getClanName(params[3]) + " en formato " + Clans.getWarFormatName(params[0]) + ".");
-			Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una War en formato ' +  Clans.getWarFormatName(params[0]) + ' entre los clanes ' + Clans.getClanName(params[2]) + " y " + Clans.getClanName(params[3]) +  '. Si deseas unirte escribe </font> <font color="red">/joinwar</font> <font color="green">.</font></h2><b><font color="blueviolet">Jugadores por clan:</font></b> ' + params[1] + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Clans.getWarFormatName(params[0]) + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la war.</b></font>');
-
-		}
-	},
-
-	totalwar: 'wartotal',
-	wartotal: function (target, room, user) {
-		var permisionCreateWar = false;
-		if (user.group === '+' || user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionCreateWar = true;
-		if (!permisionCreateWar  && !this.can('wars')) return false;
-		if (!room.isOfficial) return this.sendReply("Este comando solo puede ser usado en salas Oficiales.");
-		if (Clans.findWarFromRoom(room.id)) return this.sendReply("Ya había una war en curso en esta sala.");
-		var params = target.split(',');
-		if (params.length !== 4) return this.sendReply("Usage: /totalwar formato, tamaño, clanA, clanB");
-		if (!Clans.getWarFormatName(params[0])) return this.sendReply("El formato especificado para la war no es válido.");
-		params[1] = parseInt(params[1]);
-		if (params[1] < 3 || params[1] > 100) return this.sendReply("El tamaño de la war no es válido.");
-
-		if (!Clans.createWar(params[2], params[3], room.id, params[0], params[1], 2)) {
-			this.sendReply("Alguno de los clanes especificados no existía o ya estaba en war.");
-		} else {
-			this.logModCommand(user.name + " ha iniciado una war total entre los clanes " + Clans.getClanName(params[2]) + " y " + Clans.getClanName(params[3]) + " en formato " + Clans.getWarFormatName(params[0]) + ".");
-			Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una War Total en formato ' +  Clans.getWarFormatName(params[0]) + ' entre los clanes ' + Clans.getClanName(params[2]) + " y " + Clans.getClanName(params[3]) +  '. Si deseas unirte escribe </font> <font color="red">/joinwar</font> <font color="green">.</font></h2><b><font color="blueviolet">Jugadores por clan:</font></b> ' + params[1] + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Clans.getWarFormatName(params[0]) + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la war.</b></font>');
-
-		}
-	},
-
-	joinwar: 'jw',
-	jw: function (target, room, user) {
-		var clanUser = Clans.findClanFromMember(user.name);
-		if (!clanUser) {
-			return this.sendReply("No perteneces a ningún clan.");
-		}
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (toId(clanUser) !== toId(currentWar) && toId(clanUser) !== toId(currentWarData.against)) return this.sendReply("No perteneces a ninguno de los clanes que se están enfrentando en war.");
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (currentWarParticipants.clanAMembers[toId(user.name)] || currentWarParticipants.clanBMembers[toId(user.name)]) return this.sendReply("Ya estabas inscrito en esta war.");
-		if (currentWarData.warRound > 0) return this.sendReply("La War ya ha empezado. No te puedes unir.");
-		var registeredA = Object.keys(currentWarParticipants.clanAMembers);
-		var registeredB = Object.keys(currentWarParticipants.clanBMembers);
-		if (toId(clanUser) === toId(currentWar) && registeredA.length === currentWarData.warSize) return this.sendReply("No quedan plazas para tu clan en esta war.");
-		if (toId(clanUser) === toId(currentWarData.against) && registeredB.length === currentWarData.warSize) return this.sendReply("No quedan plazas para tu clan en esta war.");
-		//join war
-		var clanBJoin = false;
-		if (toId(clanUser) === toId(currentWarData.against)) clanBJoin = true;
-
-		if (!Clans.addWarParticipant(currentWar, user.name, clanBJoin)) {
-			this.sendReply("Error al intentar unirse a la war.");
-		} else {
-			var freePlaces = Clans.getFreePlaces(currentWar);
-			if (freePlaces > 0) {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> se ha unido a la War. Quedan ' + freePlaces + ' plazas.');
-			} else{
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> se ha unido a la War. Comienza la War!');
-				Clans.startWar(currentWar);
-				//view war status
-				var warType = "";
-				if (currentWarData.warStyle === 2) warType = " total";
-				currentWarParticipants = Clans.getWarParticipants(currentWar);
-				var htmlSource = '<hr /><h3><center><font color=green><big>War' + warType + ' entre ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '</big></font></center></h3><center><b>FORMATO:</b> ' + Clans.getWarFormatName(currentWarData.format) + "</center><hr /><center><small><font color=red>Red</font> = descalificado, <font color=green>Green</font> = paso a la siguiente ronda, <a class='ilink'><b>URL</b></a> = combatiendo</small><center><br />";
-				var clanDataA = Clans.getProfile(currentWar);
-				var clanDataB = Clans.getProfile(currentWarData.against);
-				var matchupsTable = '<table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(clanDataA.logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
-				for (var i in currentWarParticipants.matchups) {
-					var userk = Users.getExact(currentWarParticipants.matchups[i].from);
-					if (!userk) {userk = currentWarParticipants.matchups[i].from;} else {userk = userk.name;}
-					var userf = Users.getExact(currentWarParticipants.matchups[i].to);
-					if (!userf) {userf = currentWarParticipants.matchups[i].to;} else {userf = userf.name;}
-					switch (currentWarParticipants.matchups[i].result) {
-						case 0:
-						matchupsTable += '<tr><td  align="right"><big>' + userk + '</big></td><td>&nbsp;vs&nbsp;</td><td><big align="left">' + userf + "</big></td></tr>";
-						break;
-						case 1:
-						matchupsTable += '<tr><td  align="right"><a href="' + currentWarParticipants.matchups[i].battleLink + '" room ="' + currentWarParticipants.matchups[i].battleLink + '"class="ilink"><big>' + userk + '</big></a></td><td>&nbsp;<a href="' + currentWarParticipants.matchups[i].battleLink + '" room ="' + currentWarParticipants.matchups[i].battleLink + '"class="ilink">vs</a>&nbsp;</td><td><a href="' + currentWarParticipants.matchups[i].battleLink + '" room ="' + currentWarParticipants.matchups[i].battleLink + '"class="ilink"><big align="left">' + userf + "</big></a></td></tr>";
-						break;
-						case 2:
-						matchupsTable += '<tr><td  align="right"><font color="green"><big>' + userk + '</big></font></td><td>&nbsp;vs&nbsp;</td><td><font color="red"><big align="left">' + userf + "</big></font></td></tr>";
-						break;
-						case 3:
-						matchupsTable += '<tr><td  align="right"><font color="red"><big>' + userk + '</big></font></td><td>&nbsp;vs&nbsp;</td><td><font color="green"><big align="left">' + userf + "</big></font></td></tr>";
-						break;
-					}
-				}
-				matchupsTable += '</table></td><td>&nbsp;&nbsp;&nbsp;&nbsp;<img width="100" height="100" src="' + encodeURI(clanDataB.logo) + '" /></td></tr></table><hr />';
-				htmlSource += matchupsTable;
-				Rooms.rooms[room.id].addRaw(htmlSource);
-			}
-		}
-
-	},
-
-	leavewar: 'lw',
-	lw: function (target, room, user) {
-		var clanUser = Clans.findClanFromMember(user.name);
-		if (!clanUser) {
-			return this.sendReply("No perteneces a ningún clan.");
-		}
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (toId(clanUser) !== toId(currentWar) && toId(clanUser) !== toId(currentWarData.against)) return this.sendReply("No perteneces a ninguno de los clanes que se están enfrentando en war.");
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (!currentWarParticipants.clanAMembers[toId(user.name)] && !currentWarParticipants.clanBMembers[toId(user.name)]) return this.sendReply("No estabas inscrito en esta war.");
-		if (currentWarData.warRound > 0) return this.sendReply("La War ya ha empezado. No puedes salir de ella.");
-		//leave war
-		var clanBJoin = false;
-		if (toId(clanUser) === toId(currentWarData.against)) clanBJoin = true;
-
-		if (!Clans.removeWarParticipant(currentWar, user.name, clanBJoin)) {
-			this.sendReply("Error al intentar salir de la war.");
-		} else {
-			var freePlaces = Clans.getFreePlaces(currentWar);
-			Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha salido de la War. Quedan ' + freePlaces + ' plazas.');
-		}
-
-	},
-
-	warkick: function (target, room, user) {
-		var permisionModWar = false;
-		if (user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionModWar = true;
-		if (!permisionModWar  && !this.can('wars')) return false;
-		if (!target) return this.sendReply("No has especificado ningún usuario");
-		var clanUser = Clans.findClanFromMember(target);
-		if (!clanUser) {
-			return this.sendReply("El usuario no pertene a ningún clan.");
-		}
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (toId(clanUser) !== toId(currentWar) && toId(clanUser) !== toId(currentWarData.against)) return this.sendReply("El usuario no pertenece a ninguno de los clanes que se están enfrentando en war.");
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (!currentWarParticipants.clanAMembers[toId(target)] && !currentWarParticipants.clanBMembers[toId(target)]) return this.sendReply("El Usuario no estaba inscrito en esta war.");
-		if (currentWarData.warRound > 0) return this.sendReply("La War ya ha empezado. No puedes usar este comando.");
-		//leave war
-		var clanBJoin = false;
-		if (toId(clanUser) === toId(currentWarData.against)) clanBJoin = true;
-
-		if (!Clans.removeWarParticipant(currentWar, target, clanBJoin)) {
-			this.sendReply("Error al intentar expulsar de la war.");
-		} else {
-			var freePlaces = Clans.getFreePlaces(currentWar);
-			var userk = Users.getExact(target);
-			if (!userk) {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha expulsado a <b>' + userk.name + '</b> de la War. Quedan ' + freePlaces + ' plazas.');
-			} else {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha expulsado a <b>' + toId(target) + '</b> de la War. Quedan ' + freePlaces + ' plazas.');
-			}
-		}
-
-	},
-
-	wdq: 'wardq',
-	wardq: function (target, room, user) {
-		var permisionModWar = false;
-		if (!target) return this.sendReply("No has especificado ningún usuario");
-		var clanUser = Clans.findClanFromMember(target);
-		if (user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionModWar = true;
-		if (!clanUser) {
-			return this.sendReply("El usuario no pertene a ningún clan.");
-		}
-		if (Clans.authMember(clanUser, user.name) === 1 || Clans.authMember(clanUser, user.name) === 2) permisionModWar = true;
-		if (!permisionModWar && !this.can('wars')) return false;
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (toId(clanUser) !== toId(currentWar) && toId(clanUser) !== toId(currentWarData.against)) return this.sendReply("El usuario no pertenece a ninguno de los clanes que se están enfrentando en war.");
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (!currentWarParticipants.clanAMembers[toId(target)] && !currentWarParticipants.clanBMembers[toId(target)]) return this.sendReply("El Usuario no estaba inscrito en esta war.");
-		if (currentWarData.warRound === 0) return this.sendReply("La War no ha empezado aún. No puedes usar este comando.");
-		var clanBJoin = false;
-		if (toId(clanUser) === toId(currentWarData.against)) clanBJoin = true;
-		var matchupId = toId(target);
-		if (!clanBJoin) {
-			if (!currentWarParticipants.matchups[toId(target)] || currentWarParticipants.matchups[toId(target)].result > 1) return this.sendReply("El usuario no participaba en la war o ya había pasado a la siguiete ronda.");
-		} else {
-			var isParticipant = false;
-			for (var g in currentWarParticipants.matchups) {
-				if (toId(currentWarParticipants.matchups[g].to) === toId(target) && currentWarParticipants.matchups[g].result < 2) {
-					isParticipant = true;
-					matchupId = g;
-				}
-			}
-			if (!isParticipant) return this.sendReply("El usuario no participaba en la war o ya había pasado a la siguiete ronda.");
-		}
-
-		if (!Clans.dqWarParticipant(currentWar, matchupId, clanBJoin)) {
-			this.sendReply("El usuario no participaba en la war o ya había pasado a la siguiete ronda.");
-		} else {
-			var userk = Users.getExact(target);
-			if (!userk) {
-				this.addModCommand(target + " ha sido descalificado de la war por " + user.name + ".");
-			} else {
-				this.addModCommand(userk.name + " ha sido descalificado de la war por " + user.name + ".");
-			}
-			if (Clans.isWarEnded(currentWar)) {
-				Clans.autoEndWar(currentWar);
-			}
-		}
-
-	},
-
-	warinvalidate: function (target, room, user) {
-		var permisionModWar = false;
-		if (!target) return this.sendReply("No has especificado ningún usuario");
-		var clanUser = Clans.findClanFromMember(target);
-		if (user.group === '@' || user.group === '&' || user.group === '~') permisionModWar = true;
-		if (!clanUser) {
-			return this.sendReply("El usuario no pertene a ningún clan.");
-		}
-		if (!permisionModWar  && !this.can('wars')) return false;
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (toId(clanUser) !== toId(currentWar) && toId(clanUser) !== toId(currentWarData.against)) return this.sendReply("El usuario no pertenece a ninguno de los clanes que se están enfrentando en war.");
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (!currentWarParticipants.clanAMembers[toId(target)] && !currentWarParticipants.clanBMembers[toId(target)]) return this.sendReply("El Usuario no estaba inscrito en esta war.");
-		if (currentWarData.warRound === 0) return this.sendReply("La War no ha empezado aún. No puedes usar este comando.");
-		var clanBJoin = false;
-		if (toId(clanUser) === toId(currentWarData.against)) clanBJoin = true;
-		var matchupId = toId(target);
-		if (!clanBJoin) {
-			if (!currentWarParticipants.matchups[toId(target)] || currentWarParticipants.matchups[toId(target)].result === 0) return this.sendReply("El usuario no participaba o no había ningún resultado fijado para esta batalla de war.");
-		} else {
-			var isParticipant = false;
-			for (var g in currentWarParticipants.matchups) {
-				if (toId(currentWarParticipants.matchups[g].to) === toId(target) && currentWarParticipants.matchups[g].result > 0) {
-					isParticipant = true;
-					matchupId = g;
-				}
-			}
-			if (!isParticipant) return this.sendReply("El usuario no participaba o no había ningún resultado fijado para esta batalla de war.");
-		}
-
-		if (!Clans.invalidateWarMatchup(currentWar, matchupId)) {
-			this.sendReply("El usuario no participaba o no había ningún resultado fijado para esta batalla de war.");
-		} else {
-			var userk = Users.getExact(currentWarParticipants.matchups[matchupId].from);
-			if (!userk) {userk = currentWarParticipants.matchups[matchupId].from;} else {userk = userk.name;}
-			var userf = Users.getExact(currentWarParticipants.matchups[matchupId].to);
-			if (!userf) {userf = currentWarParticipants.matchups[matchupId].to;} else {userf = userf.name;}
-			this.addModCommand("La batalla entre " + userk + " y " + userf + " ha sido invalidada por " + user.name + ".");
-		}
-
-	},
-	wreplace: 'warreplace',
-	warreplace: function (target, room, user) {
-		var permisionModWar = false;
-		var params = target.split(',');
-		if (params.length !== 2) return this.sendReply("Usage: /wreplace usuario1, usuario2");
-		var clanUser = Clans.findClanFromMember(params[0]);
-		if (user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionModWar = true;
-		if (!clanUser) {
-			return this.sendReply("El usuario no pertene a ningún clan.");
-		}
-		if (Clans.authMember(clanUser, user.name) === 1 || Clans.authMember(clanUser, user.name) === 2) permisionModWar = true;
-		if (!permisionModWar  && !this.can('wars')) return false;
-		var userh = Users.getExact(params[1]);
-		if (!userh || !userh.connected) return this.sendReply("Usuario: " + params[1] + " no existe o no está disponible.");
-		var clanTarget = Clans.findClanFromMember(params[1]);
-		if (toId(clanTarget) !== toId(clanUser)) return this.sendReply("No puedes reemplazar por alguien de distinto clan.");
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (toId(clanUser) !== toId(currentWar) && toId(clanUser) !== toId(currentWarData.against)) return this.sendReply("El usuario no pertenece a ninguno de los clanes que se están enfrentando en war.");
-		var currentWarParticipants = Clans.getWarParticipants(currentWar);
-		if (!currentWarParticipants.clanAMembers[toId(params[0])] && !currentWarParticipants.clanBMembers[toId(params[0])]) return this.sendReply("El Usuario no estaba inscrito en esta war.");
-		if (currentWarParticipants.clanAMembers[toId(params[1])] || currentWarParticipants.clanBMembers[toId(params[1])]) return this.sendReply("No puedes reemplazar por alguien que ya participaba en la war.");
-		if (currentWarData.warRound === 0) return this.sendReply("La War no ha empezado aún. No puedes usar este comando.");
-		var clanBJoin = false;
-		if (toId(clanUser) === toId(currentWarData.against)) clanBJoin = true;
-		var matchupId = toId(params[0]);
-		if (!clanBJoin) {
-			if (!currentWarParticipants.matchups[toId(params[0])] || currentWarParticipants.matchups[toId(params[0])].result !== 0) return this.sendReply("El usuario no participaba o ya había empezado su batalla.");
-		} else {
-			var isParticipant = false;
-			for (var g in currentWarParticipants.matchups) {
-				if (toId(currentWarParticipants.matchups[g].to) === toId(params[0]) && currentWarParticipants.matchups[g].result === 0) {
-					isParticipant = true;
-					matchupId = g;
-				}
-			}
-			if (!isParticipant) return this.sendReply("El usuario no participaba o ya había empezado su batalla.");
-		}
-		if (!Clans.replaceWarParticipant(currentWar, matchupId, params[1], clanBJoin)) {
-			this.sendReply("El usuario no participaba o ya había empezado su batalla.");
-		} else {
-			var userk = Users.getExact(params[0]);
-			if (!userk) {userk = params[0];} else {userk = userk.name;}
-			var userf = Users.getExact(params[1]);
-			if (!userf) {userf = params[1];} else {userf = userf.name;}
-			this.addModCommand(user.name + ": " + userk + " es reemplazado por " + userf + ".");
-		}
-
-	},
-
-	finalizarwar: 'endwar',
+	
 	endwar: function (target, room, user) {
-		var permisionCreateWar = false;
-		if (user.group === '+' || user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') permisionCreateWar = true;
-		//if (room.auth && room.auth[user.userid]) permisionCreateWar = true;
-		if (!permisionCreateWar  && !this.can('wars')) return false;
-		var currentWar = Clans.findWarFromRoom(room.id);
-		if (!currentWar) return this.sendReply("No había ninguna war en curso en esta sala.");
-		var currentWarData = Clans.getWarData(currentWar);
-		if (!Clans.endWar(currentWar)) {
-			this.sendReply("No se pudo terminar la war de esta sala debido a un error.");
-		} else {
-			this.logModCommand(user.name + " ha cancelado la war entre los clanes " + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + ".");
-			Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha cancelado la War entre los clanes ' + Clans.getClanName(currentWar) + " y " + Clans.getClanName(currentWarData.against) + '. <br /><hr />');
-
-		}
+		this.parse("/war end");
 	},
-
+	
 	warlog: function (target, room, user) {
 		var autoclan = false;
 		if (!target) autoclan = true;
@@ -2475,7 +2169,8 @@ var commands = exports.commands = {
 			"|raw| <center><big><big><b>Ultimas Wars del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + Clans.getWarLogTable(target) + '<br /> Fecha del servidor: ' + dateWar + '</center>'
 		);
 	},
-
+	
+	cerrarsalaclan: 'closeclanroom',
 	closeclanroom: function (target, room, user) {
 		var permisionClan = false;
 		var clanRoom = Clans.findClanFromRoom(room.id);
@@ -2485,9 +2180,9 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 2) permisionClan = true;
-
-		}
+			if (perminsionvalue >= 2) permisionClan = true;
+			
+		} 
 		if (!permisionClan && !this.can('clans')) return false;
 		if (!Clans.closeRoom(room.id, clanRoom))
 			this.sendReply("Error al intentar cerrar la sala. Es posible que ya esté cerrada.");
@@ -2495,7 +2190,8 @@ var commands = exports.commands = {
 			this.addModCommand("Esta sala ha sido cerrada a quienes no sean miembros de " + clanRoom + " por " + user.name);
 		}
 	},
-
+	
+	abrirsalaclan: 'openclanroom',
 	openclanroom: function (target, room, user) {
 		var permisionClan = false;
 		var clanRoom = Clans.findClanFromRoom(room.id);
@@ -2505,9 +2201,9 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var iduserwrit = toId(user.name);
 			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 2) permisionClan = true;
-
-		}
+			if (perminsionvalue >= 2) permisionClan = true;
+			
+		} 
 		if (!permisionClan && !this.can('clans')) return false;
 		if (!Clans.openRoom(room.id, clanRoom))
 			this.sendReply("Error al intentar abrir la sala. Es posible que ya esté abierta.");
@@ -2515,39 +2211,7 @@ var commands = exports.commands = {
 			this.addModCommand("Esta sala ha sido abierta a todos los usuarios por " + user.name);
 		}
 	},
-
-	llamarmiembros: 'fjg',
-	fjg: function (target, room, user) {
-		var permisionClan = false;
-		var clanUser = Clans.findClanFromMember(user.name);
-		if (clanUser) {
-			var clanUserid = toId(clanUser);
-			var iduserwrit = toId(user.name);
-			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 2) permisionClan = true;
-			if (!permisionClan && !this.can('clans')) return false;
-		} else {
-			return false;
-		}
-		var claninfo = Clans.getElementalData (clanUser);
-		if (room && room.id === toId(claninfo.sala)) {
-			var clanMembers = Clans.getMembers(clanUser);
-			var targetUser;
-			for (var i = 0; i < clanMembers.length; ++i) {
-				if (!room.users[toId(clanMembers[i])]) {
-					targetUser = Users.get(clanMembers[i])
-					if (targetUser && targetUser.connected) {
-						targetUser.joinRoom(room.id);
-						targetUser.popup('Has sido llamado a la sala ' + claninfo.sala.trim() + ' por ' + user.name + '.');
-					}
-				}
-			}
-			this.addModCommand("Los miembros del clan " + clanUser + " han sido llamados a la sala " + toId(claninfo.sala) + ' por ' + user.name + '.');
-		} else {
-			this.sendReply("Este comando solo puede ser usado en la sala del clan.");
-		}
-	},
-
+	
 	rk: 'roomkick',
 	roomkick: function (target, room, user, connection) {
 		if (!target) return this.sendReply("Usage: /roomkick user");
@@ -2565,16 +2229,22 @@ var commands = exports.commands = {
 		this.add('|unlink|' + this.getLastIdOf(targetUser));
 		targetUser.leaveRoom(room.id);
 	},
-
+	
 	kickall: function (target, room, user, connection) {
 		if (user.locked || user.mutedRooms[room.id]) return this.sendReply("You cannot do this while unable to talk.");
 		if (!this.can('makeroom')) return false;
 		var targetUser;
-		for (var f in Rooms.rooms[room.id].users) {
-			targetUser = Users.getExact(Rooms.rooms[room.id].users[f]);
-			if (toId(targetUser.name) !== toId(user.name)) targetUser.leaveRoom(room.id);
+		for (var f in room.users) {
+			targetUser = Users.getExact(room.users[f]);
+			if (!targetUser) {
+				delete room.users[f];
+			} else {
+				targetUser.leaveRoom(room.id);
+			}
 		}
+		room.userCount = 0;
 		this.addModCommand("" + user.name + " has kicked all users from room " + room.id + '.');
+		setTimeout(function () {user.joinRoom(room.id);}, 2000);
 	},
 
 	/*********************************************************

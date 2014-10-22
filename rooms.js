@@ -647,27 +647,6 @@ var BattleRoom = (function () {
 		this.sideTurnTicks = [0, 0];
 		this.disconnectTickDiff = [0, 0];
 
-		//war battle
-		var war = Clans.findWarFromClan(Clans.findClanFromMember(this.p1));
-		if (war) {
-			var warData = Clans.getWarData(war);
-			var currentWarParticipants = Clans.getWarParticipants(war);
-			var clanUserA = toId(Clans.findClanFromMember(this.p1));
-			var clanUserB = toId(Clans.findClanFromMember(this.p2));
-			var isClanB = false;
-			if (toId(war) === clanUserA && toId(this.format) === toId(warData.format)) {
-				if (currentWarParticipants.matchups[toId(this.p1)] && toId(currentWarParticipants.matchups[toId(this.p1)].to) === toId(this.p2) && currentWarParticipants.matchups[toId(this.p1)].result === 0) {
-					Clans.warSetActiveMatchup(war, this.p1, roomid);
-					Rooms.rooms[toId(warData.room)].addRaw('<a href="/' + roomid + '" room ="' + roomid + '" class="ilink"><b>La batalla entre ' + this.p1 + ' y ' + this.p2 + ' de la war ha comenzado.</b></a>');
-				}
-			} else if (toId(war) === clanUserB && toId(this.format) === toId(warData.format)) {
-				if (currentWarParticipants.matchups[toId(this.p2)] && toId(currentWarParticipants.matchups[toId(this.p2)].to) === toId(this.p1) && currentWarParticipants.matchups[toId(this.p2)].result === 0) {
-					Clans.warSetActiveMatchup(war, this.p2, roomid);
-					Rooms.rooms[toId(warData.room)].addRaw('<a href="/' + roomid + '" room ="' + roomid + '" class="ilink"><b>La batalla entre ' + this.p2 + ' y ' + this.p1 + ' de la war ha comenzado.</b></a>');
-				}
-			}
-		}
-
 		if (Config.forceTimer) this.requestKickInactive(false);
 	}
 	BattleRoom.prototype = Object.create(Room.prototype);
@@ -686,65 +665,6 @@ var BattleRoom = (function () {
 		}
 	};
 	BattleRoom.prototype.win = function (winner) {
-		var war = Clans.findWarFromClan(Clans.findClanFromMember(this.p1));
-		if (war) {
-			var warData = Clans.getWarData(war);
-			var currentWarParticipants = Clans.getWarParticipants(war);
-			var clanUserA = toId(Clans.findClanFromMember(this.p1));
-			var clanUserB = toId(Clans.findClanFromMember(this.p2));
-			var warUserA;
-			var warUserB;
-			var matchupResult = false;
-			var isClanB = false;
-			if (toId(war) === clanUserA && toId(this.format) === toId(warData.format) &&
-				currentWarParticipants.matchups[toId(this.p1)] && toId(currentWarParticipants.matchups[toId(this.p1)].to) === toId(this.p2) &&
-				currentWarParticipants.matchups[toId(this.p1)].result === 1 && toId(currentWarParticipants.matchups[toId(this.p1)].battleLink) === toId(this.id)) {
-				warUserA = this.p1;
-				var warUserB = this.p2;
-				if (toId(winner) === toId(this.p1)) {
-					Clans.dqWarParticipant(war, this.p1, true);
-					matchupResult = 1;
-				} else if (toId(winner) === toId(this.p2)) {
-					Clans.dqWarParticipant(war, this.p1, false);
-					matchupResult = 2;
-				} else {
-					Clans.warSetDrawn(war, this.p1);
-					matchupResult = 3;
-				}
-			} else if (toId(war) === clanUserB && toId(this.format) === toId(warData.format) &&
-				currentWarParticipants.matchups[toId(this.p2)] && toId(currentWarParticipants.matchups[toId(this.p2)].to) === toId(this.p1) &&
-				currentWarParticipants.matchups[toId(this.p2)].result === 1 && toId(currentWarParticipants.matchups[toId(this.p2)].battleLink) === toId(this.id)) {
-				warUserA = this.p2;
-				warUserB = this.p1;
-				if (toId(winner) === toId(this.p2)) {
-					Clans.dqWarParticipant(war, this.p2, true);
-					matchupResult = 1;
-				} else if (toId(winner) === toId(this.p1)) {
-					Clans.dqWarParticipant(war, this.p2, false);
-					matchupResult = 2;
-				} else {
-					Clans.warSetDrawn(war, this.p1);
-					matchupResult = 3;
-				}
-			}
-			switch (matchupResult) {
-				case 1:
-					Rooms.rooms[toId(warData.room)].addRaw('<b>' + warUserA + '</b> ha ganado su combate contra <b>' + warUserB + '</b>');
-					break;
-				case 2:
-					Rooms.rooms[toId(warData.room)].addRaw('<b>' + warUserB + '</b> ha ganado su combate contra <b>' + warUserA + '</b>');
-					break;
-				case 3:
-					Rooms.rooms[toId(warData.room)].addRaw('Empate entre <b>' + warUserA + '</b> y <b>' + warUserB + '</b>. Inicien otra batalla.');
-					break;
-			}
-			if (matchupResult) {
-				if (Clans.isWarEnded(war)) {
-					Clans.autoEndWar(war);
-				}
-			}
-		}
-
 		if (this.rated) {
 			//shop
 			var moneyWinner = 4;

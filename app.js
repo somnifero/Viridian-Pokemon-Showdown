@@ -338,8 +338,6 @@ global.Simulator = require('./simulator.js');
 
 global.Tournaments = require('./tournaments');
 
-global.Clans = require('./clans.js');
-
 global.Shop = require('./shop.js');
 
 global.League = require('./league.js');
@@ -407,6 +405,8 @@ fs.readFile('./config/ipbans.txt', function (err, data) {
 	Users.checkRangeBanned = Cidr.checker(rangebans);
 });
 
+global.Clans = require('./clans.js');
+global.War = require('./war.js');
 global.tour = new (require('./tour.js').tour)();
 global.teamTour = require('./teamtour.js');
 global.Bot = require('./bot.js');

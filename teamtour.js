@@ -479,6 +479,8 @@ exports.viewTourStatus = function (room) {
  * Commands
  *********************************************************/
 var cmds = {
+	cwar: 'teamtour',
+	customwar: 'teamtour',
 	tt: 'teamtour',
 	teamtour: function(target, room, user, connection) {
 		var roomId = room.id;
@@ -521,6 +523,8 @@ var cmds = {
 				if (params.length < 6) return this.sendReply("Usage: /teamtour new, [standard/total/lineups], [tier/multitier], [tamaño], [equipoA], [equipoB]");
 				if (!this.can('staff', room)) return false;
 				if (teamTour.getTourData(roomId)) return this.sendReply("Ya había un torneo de equipos en esta sala.");
+				if (War.getTourData(roomId)) return this.sendReply("Ya había una guerra en esta sala.");
+				if (tour[roomId].status != 0) return this.sendReply('Ya hay un torneo en curso.');
 				var size = parseInt(params[3]);
 				if (size < 2) return this.sendReply("Mínimo deben ser 3 jugadores por equipo.");
 				var format = teamTour.tourTiers[toId(params[2])];

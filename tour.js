@@ -402,6 +402,8 @@ var cmds = {
 		if (room.decision) return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
 		var rid = room.id;
 		if (tour[rid].status != 0) return this.sendReply('Ya hay un torneo en curso.');
+		if (War.getTourData(room.id)) return this.sendReply("Ya había una guerra en esta sala.");
+		if (teamTour.getTourData(room.id)) return this.sendReply("Ya había un torneo de equipos en esta sala.");
 		if (!target) return this.sendReply('El comando correcto es: /newtour formato, tamano');
 		var targets = tour.splint(target);
 		if (targets.length != 2) return this.sendReply('El comando correcto es: /newtour formato, tamano');
@@ -492,6 +494,8 @@ var cmds = {
 	jointour: 'j',
 	j: function(target, room, user, connection) {
 		if (room.decision) return this.sendReply('No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
+		if (War.getTourData(room.id)) return this.parse("/war join");
+		if (teamTour.getTourData(room.id))return this.parse("/tt join, " + target);
 		if (tour[room.id] == undefined || tour[room.id].status == 0) return this.sendReply('No hay torneos activos en esta sala.');
 		if (tour[room.id].status == 2) return this.sendReply('Ya no te puedes registrar a este torneo.');
 		if (tour.joinable(user.userid, room.id)) {
@@ -523,6 +527,8 @@ var cmds = {
 	leavetour: 'l',
 	l: function(target, room, user, connection) {
 		if (room.decision) return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
+		if (War.getTourData(room.id)) return this.parse("/war leave");
+		if (teamTour.getTourData(room.id))return this.parse("/tt leave");
 		if (tour[room.id] == undefined || tour[room.id].status == 0) return this.sendReply('No hay un torneo activo que abandonar.');
 		if (tour[room.id].status == 1) {
 			var index = tour[room.id].players.indexOf(user.userid);
@@ -644,6 +650,8 @@ var cmds = {
 	viewround: 'vr',
 	viewreport: 'vr',
 	vr: function(target, room, user, connection) {
+		if (War.getTourData(room.id)) return this.parse("/war round");
+		if (teamTour.getTourData(room.id))return this.parse("/tt round");
 		if (!tour[room.id].status) {
 			if (!this.canBroadcast()) return;
 			var oghtml = "<hr /><h2>Torneos en su fase de entrada:</h2>";
@@ -712,6 +720,8 @@ var cmds = {
 
 	disqualify: 'dq',
 	dq: function(target, room, user, connection) {
+		if (War.getTourData(room.id)) return this.parse("/war dq, " + target);
+		if (teamTour.getTourData(room.id))return this.parse("/tt dq, " + target);
 		if (!tour.midauth(user,room)) return this.sendReply('No tienes suficiente poder para utilizar este comando.');
 		if (!target) return this.sendReply('El comando correcto es: /dq usuario');
 		if (room.decision) return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
@@ -752,6 +762,8 @@ var cmds = {
 	},
 
 	replace: function(target, room, user, connection) {
+		if (War.getTourData(room.id)) return this.parse("/war replace, " + target);
+		if (teamTour.getTourData(room.id))return this.parse("/tt replace, " + target);
 		if (!tour.midauth(user,room)) return this.sendReply('No tienes suficiente poder para utilizar este comando.');
 		if (room.decision) return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
 		if (tour[room.id] == undefined || tour[room.id].status != 2) return this.sendReply('No hay un torneo aca o esta en su fase de inscripcion. Reemplazar participantes solo es posible en la mitad del torneo.');
