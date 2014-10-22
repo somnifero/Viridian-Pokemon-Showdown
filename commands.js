@@ -190,7 +190,7 @@ var commands = exports.commands = {
 	},
 
 	privateroom: function (target, room, user) {
-		if (!this.can('privateroom', room)) return;
+		if (!user.can('privateroom', room) && !user.can('privateroom')) return this.sendReply("/privateroom - Access denied.");
 		if (target === 'off') {
 			delete room.isPrivate;
 			this.addModCommand("" + user.name + " made this room public.");
@@ -209,7 +209,7 @@ var commands = exports.commands = {
 	},
 
 	modjoin: function (target, room, user) {
-		if (!this.can('privateroom', room)) return;
+		if (!user.can('privateroom', room) && !user.can('privateroom')) return this.sendReply("/modjoin - Access denied.");
 		if (target === 'off') {
 			delete room.modjoin;
 			this.addModCommand("" + user.name + " turned off modjoin.");
