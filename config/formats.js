@@ -624,7 +624,42 @@ exports.Formats = [
 		ruleset: ['Pokemon', 'Standard NEXT', 'Team Preview'],
 		banlist: ['Uber']
 	},
+	
+	// Especiales
+	///////////////////////////////////////////////////////////////////
+	
+	{
+		name: "ORAS Ubers",
+		section: "Especiales",
+		column: 3,
 
+		mod: 'oras',
+		ruleset: ['Pokemon', 'Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Moody Clause', 'Endless Battle Clause', 'HP Percentage Mod', 'Team Preview', 'Swagger Clause'],
+		banlist: ['Illegal', 'Floette-Eternal-Flower', 'Volcanion',
+			'Bug Gem', 'Custap Berry', 'Dark Gem', 'Dragon Gem', 'Electric Gem', 'Fairy Gem', 'Fighting Gem', 'Fire Gem', 'Flying Gem', 'Ghost Gem',
+			'Grass Gem', 'Ground Gem', 'Ice Gem', 'Mail', 'Poison Gem', 'Psychic Gem', 'Rock Gem', 'Steel Gem', 'Water Gem'
+		]
+	},
+	
+	{
+		name: "ORAS Mega Party",
+		section: "Especiales",
+
+		mod: 'orasmega',
+		ruleset: ['Pokemon', 'Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Moody Clause', 'Evasion Moves Clause', 'Endless Battle Clause', 'HP Percentage Mod', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause'],
+		banlist: ['Illegal', 'Uber', 'Floette-Eternal-Flower', 'Hoopa', 'Volcanion', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Soul Dew',
+			'Bug Gem', 'Custap Berry', 'Dark Gem', 'Dragon Gem', 'Electric Gem', 'Fairy Gem', 'Fighting Gem', 'Fire Gem', 'Flying Gem', 'Ghost Gem',
+			'Grass Gem', 'Ground Gem', 'Ice Gem', 'Mail', 'Poison Gem', 'Psychic Gem', 'Rock Gem', 'Steel Gem', 'Water Gem'
+		],
+		validateSet: function(set) {
+			var template = this.getTemplate(set.species || set.name);
+			var item = this.getItem(set.item);
+			if (!item.megaStone) return template.species + ' has not its mega stone.';
+			var templateItem = this.getTemplate(item.megaStone);
+			if (!templateItem.isMega) return template.species + ' can\'t mega evolve.';
+			if (template.baseSpecies !== templateItem.baseSpecies && template.species !== templateItem.baseSpecies) return template.species + ' can\'t mega evolve.';
+		}
+	},
 	// Random Metagames
 	///////////////////////////////////////////////////////////////////
 
