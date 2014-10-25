@@ -1881,8 +1881,8 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var userb = toId(params[0]);
 			var iduserwrit = toId(user.name);
-			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if ((perminsionvalue === 2 || perminsionvalue === 3) && clanTarget === clanUser) permisionClan = true;
+			var perminsionValue = Clans.authMember(clanUserid, iduserwrit);
+			if ((perminsionValue === 2 || perminsionValue === 3) && clanTarget === clanUser) permisionClan = true;
 		}
 		if (!permisionClan && !this.can('clans')) return;
 		var userk = Users.getExact(params[0]);
@@ -1913,8 +1913,8 @@ var commands = exports.commands = {
 			var clanUserid = toId(clanUser);
 			var userb = toId(params[0]);
 			var iduserwrit = toId(user.name);
-			var perminsionvalue = Clans.authMember(clanUserid, iduserwrit);
-			if (perminsionvalue === 3 && clanTarget === clanUser) permisionClan = true;
+			var perminsionValue = Clans.authMember(clanUserid, iduserwrit);
+			if (perminsionValue === 3 && clanTarget === clanUser) permisionClan = true;
 		}
 		if (!permisionClan && !this.can('clans')) return;
 		var userk = Users.getExact(params[0]);
