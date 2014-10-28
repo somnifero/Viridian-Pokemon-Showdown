@@ -136,7 +136,7 @@ exports.Formats = [
 		name: "Custom Game",
 		section: "XY Singles",
 
-		searchShow: false,
+		searchShow: true,
 		canUseRandomTeam: true,
 		debug: true,
 		maxLevel: 9999,
@@ -593,7 +593,7 @@ exports.Formats = [
 		name: "Sky Battle",
 		section: "Other Metagames",
 
-		searchShow: false,
+		searchShow: true,
 		validateSet: function (set) {
 			var template = this.getTemplate(set.species || set.name);
 			if (template.types.indexOf('Flying') === -1 && set.ability !== 'Levitate') {
