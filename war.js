@@ -746,13 +746,11 @@ Rooms.global.startBattle = function(p1, p2, format, rated, p1team, p2team) {
 	if (!newRoom) return;
 	var formaturlid = format.toLowerCase().replace(/[^a-z0-9]+/g, '');
 	//tour
-	if (!rated) {
-		var matchup = War.findTourFromMatchup(p1.name, p2.name, format, newRoom.id)
-		if (matchup) {
-			newRoom.war = 1;
-			War.setActiveMatchup(matchup.tourId, matchup.matchupId, newRoom.id);
-			Rooms.rooms[matchup.tourId].addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>");
-		}
+	var matchup = War.findTourFromMatchup(p1.name, p2.name, format, newRoom.id);
+	if (matchup) {
+		newRoom.war = 1;
+		War.setActiveMatchup(matchup.tourId, matchup.matchupId, newRoom.id);
+		Rooms.rooms[matchup.tourId].addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>");
 	}
 	//end tour
 
@@ -763,7 +761,7 @@ if (!Rooms.BattleRoom.prototype.___win) Rooms.BattleRoom.prototype.___win = Room
 Rooms.BattleRoom.prototype.win = function(winner) {
 	//tour
 	if (this.war) {
-		var matchup = War.findTourFromMatchup(this.p1.name, this.p2.name, this.format, this.id)
+		var matchup = War.findTourFromMatchup(this.p1.name, this.p2.name, this.format, this.id);
 		if (matchup) {
 			var losser = false;
 			if (toId(this.p1.name) === toId(winner)) losser = this.p2.name;
