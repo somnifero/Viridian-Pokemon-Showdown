@@ -401,7 +401,7 @@ var cmds = {
 		if (!tour.midauth(user,room)) return this.parse('/tours');
 		if (room.decision) return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
 		var rid = room.id;
-		if (tour[rid].status != 0) return this.sendReply('Ya hay un torneo en curso.');
+		if (tour[rid] && tour[rid].status != 0) return this.sendReply('Ya hay un torneo en curso.');
 		if (War.getTourData(room.id)) return this.sendReply("Ya había una guerra en esta sala.");
 		if (teamTour.getTourData(room.id)) return this.sendReply("Ya había un torneo de equipos en esta sala.");
 		if (!target) return this.sendReply('El comando correcto es: /newtour formato, tamano');

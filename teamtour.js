@@ -524,7 +524,7 @@ var cmds = {
 				if (!this.can('staff', room)) return false;
 				if (teamTour.getTourData(roomId)) return this.sendReply("Ya había un torneo de equipos en esta sala.");
 				if (War.getTourData(roomId)) return this.sendReply("Ya había una guerra en esta sala.");
-				if (tour[roomId].status != 0) return this.sendReply('Ya hay un torneo en curso.');
+				if (tour[roomId] && tour[roomId].status != 0) return this.sendReply('Ya hay un torneo en curso.');
 				var size = parseInt(params[3]);
 				if (size < 2) return this.sendReply("Mínimo deben ser 3 jugadores por equipo.");
 				var format = teamTour.tourTiers[toId(params[2])];
@@ -705,13 +705,11 @@ Rooms.global.startBattle = function(p1, p2, format, rated, p1team, p2team) {
 	if (!newRoom) return;
 	var formaturlid = format.toLowerCase().replace(/[^a-z0-9]+/g, '');
 	//tour
-	if (!rated) {
-		var matchup = teamTour.findTourFromMatchup(p1.name, p2.name, format, newRoom.id)
-		if (matchup) {
+	var matchup = teamTour.findTourFromMatchup(p1.name, p2.name, format, newRoom.id);
+	if (matchup) {
 			newRoom.teamTour = 1;
 			teamTour.setActiveMatchup(matchup.tourId, matchup.matchupId, newRoom.id);
 			Rooms.rooms[matchup.tourId].addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla de torneo entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>");
-		}
 	}
 	//end tour
 
@@ -722,7 +720,7 @@ if (!Rooms.BattleRoom.prototype.__win) Rooms.BattleRoom.prototype.__win = Rooms.
 Rooms.BattleRoom.prototype.win = function(winner) {
 	//tour
 	if (this.teamTour) {
-		var matchup = teamTour.findTourFromMatchup(this.p1.name, this.p2.name, this.format, this.id)
+		var matchup = teamTour.findTourFromMatchup(this.p1.name, this.p2.name, this.format, this.id);
 		if (matchup) {
 			var losser = false;
 			if (toId(this.p1.name) === toId(winner)) losser = this.p2.name;
