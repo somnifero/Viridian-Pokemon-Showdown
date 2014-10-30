@@ -1,6 +1,7 @@
 //Viridian League
 
 const leagueDataFile = './config/league.json';
+const cfbDataFile = './config/cfb.json';
 const challengesDataFile = './config/leaguechallenges.json';
 
 var fs = require('fs');
@@ -145,18 +146,24 @@ if (!fs.existsSync(leagueDataFile))
 	
 if (!fs.existsSync(challengesDataFile))
 	fs.writeFileSync(challengesDataFile, '{}');
+	
+if (!fs.existsSync(cfbDataFile))
+	fs.writeFileSync(cfbDataFile, '{}');
 
 var league = JSON.parse(fs.readFileSync(leagueDataFile).toString());
 var pendingChallenges = JSON.parse(fs.readFileSync(challengesDataFile).toString());
+var cfbData = JSON.parse(fs.readFileSync(cfbDataFile).toString());
 
 exports.league = league;
 exports.pendingChallenges = pendingChallenges;
+exports.cfbData = cfbData;
 exports.leagueRoom = 'ligaviridian';
 
 function writeLeagueData() {
 	exports.league = league;
 	fs.writeFileSync(leagueDataFile, JSON.stringify(league));
 	fs.writeFileSync(challengesDataFile, JSON.stringify(pendingChallenges));
+	fs.writeFileSync(cfbDataFile, JSON.stringify(cfbData));
 }
 
 exports.getData = function (medalId) {
@@ -343,3 +350,76 @@ exports.clearChallenges = function (medalId) {
 	writeLeagueData();
 	return 'La lista de desafios ha sido borrada con exito.';
 };
+
+exports.newLeague = function (medalId) {
+	medalId = toId(medalId);
+	if (medalId && league[medalId]) return 'Ya existía un puesto con ese id.';
+	league[medalId] = {
+		leader: '',
+		desc: medalId,
+		htmlDesc: 'placeholder',
+		winners: {},
+		medalImage: '',
+		defaultTier: 'ou',
+		colorGym: 'black'
+	};
+	writeLeagueData();
+	return 'Se ha creado un nuevo puesto en la liga: ' + medalId;
+};
+
+exports.deleteLeague = function (medalId) {
+	medalId = toId(medalId);
+	if (!medalId || !league[medalId]) return 'No se encontró el puesto especificado.';
+	if (medalId === "main")  return 'No se puede eliminar la base.';
+	delete league[medalId];
+	writeLeagueData();
+	return medalId + ' ha sido eliminada con exito.';
+};
+
+exports.getGymCheckList = function (a) {
+	var searchId = toId(a);
+	var list = [];
+	for (var i in league) {
+		if (i.indexOf(searchId) > -1) list.push(i);
+	}
+	return list;
+};
+
+exports.getAllGyms = function () {
+	var list = '';
+	for (var i in league) {
+		list += i + " | ";
+	}
+	return list;
+};
+
+exports.hasCFB = function (user) {
+	var userId = toId(user);
+	if (cfbData[userId]) return true;
+	return false;
+};
+
+exports.giveCFB = function (user) {
+	var userId = toId(user);
+	if (cfbData[userId]) return false;
+	cfbData[userId] = 1;
+	return true;
+};
+
+exports.removeCFB = function (user) {
+	var userId = toId(user);
+	if (!cfbData[userId]) return false;
+	delete cfbData[userId];
+	return true;
+};
+
+exports.getCFB = function (user) {
+	var userId = toId(user);
+	if (!cfbData["main"]) return "[placeholder]";
+	return cfbData["main"].replace("[username]", user);
+};
+
+exports.setCFB = function (html) {
+	cfbData["main"] = html;
+};
+
