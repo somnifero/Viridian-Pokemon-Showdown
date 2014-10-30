@@ -403,6 +403,7 @@ exports.giveCFB = function (user) {
 	var userId = toId(user);
 	if (cfbData[userId]) return false;
 	cfbData[userId] = 1;
+	writeLeagueData();
 	return true;
 };
 
@@ -410,6 +411,7 @@ exports.removeCFB = function (user) {
 	var userId = toId(user);
 	if (!cfbData[userId]) return false;
 	delete cfbData[userId];
+	writeLeagueData();
 	return true;
 };
 
@@ -421,5 +423,6 @@ exports.getCFB = function (user) {
 
 exports.setCFB = function (html) {
 	cfbData["main"] = html;
+	writeLeagueData();
 };
 

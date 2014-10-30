@@ -226,6 +226,7 @@ exports.deleteClan = function (name) {
 		return false;
 
 	delete clans[id];
+	if (warLog[id]) delete warLog[id];
 	writeClanData();
 
 	return true;
@@ -793,4 +794,10 @@ exports.openRoom = function (room, clan) {
 	if (!closedRooms[roomId]) return false;
 	delete closedRooms[roomId];
 	return true;
+};
+
+exports.resetWarLog = function () {
+	warLog = {};
+	exports.warLog = warLog;
+	writeWarLogData();
 };

@@ -2121,6 +2121,13 @@ var commands = exports.commands = {
 		this.addModCommand(user.name + " ha reiniciado el ranking de clanes.");
 	},
 	
+	resetwarlog: function (target, room, user) {
+		if (!this.can('clans')) return false;
+		if (room.id !== 'staff') return this.sendReply("Este comando solo puede ser usado en la sala Staff");
+		Clans.resetWarLog();
+		this.addModCommand(user.name + " ha borrado todos los warlogs.");
+	},
+	
 	pendingwars: 'wars',
 	wars: function (target, room, user) {
 		this.parse("/war search");
