@@ -33,9 +33,23 @@ exports.acceptChallegesDenied = function (user, format) {
 	return false;
 };
 
+exports.isBanned = function (user) {
+	if (botBannedUsers[user.userid] && !user.can('staff')) return true;
+	return false;
+};
+
 function writeBotData() {
 	fs.writeFileSync(botBannedWordsDataFile, JSON.stringify(botBannedWords));
 	fs.writeFileSync(botBannedUsersDataFile, JSON.stringify(botBannedUsers));
+}
+
+if (!botBannedWords.links) {
+	botBannedWords = {
+		chars: [],
+		links: [],
+		inapropiate: []
+	};
+	writeBotData();
 }
 
 var config = {
@@ -156,11 +170,31 @@ var parse = {
 		var muteMessage = '';
 		
 		//moderation for banned words
-		for (var d in botBannedWords) {
-			if (message.toLowerCase().indexOf(botBannedWords[d]) > -1) {
+		for (var d = 0; d < botBannedWords.links.length; d++) {
+			if (message.toLowerCase().indexOf(botBannedWords.links[d]) > -1) {
 				if (pointVal < 5) {
 					pointVal = 5;
-					muteMessage = ', Su mensaje contiene una frase prohibida';
+					muteMessage = ', Contendido +18 o spam';
+					break;
+				}
+			}
+		}
+		
+		for (var d = 0; d < botBannedWords.chars.length; d++) {
+			if (message.toLowerCase().indexOf(botBannedWords.chars[d]) > -1) {
+				if (pointVal < 2) {
+					pointVal = 2;
+					muteMessage = ', Caracteres no permitidos';
+					break;
+				}
+			}
+		}
+		
+		for (var d = 0; d < botBannedWords.inapropiate.length; d++) {
+			if (message.toLowerCase().indexOf(botBannedWords.inapropiate[d]) > -1) {
+				if (pointVal < 1) {
+					pointVal = 1;
+					muteMessage = ', Lenguaje inapropiado';
 					break;
 				}
 			}
@@ -481,51 +515,58 @@ var commands = {
 	banword: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
-		var word = target.toLowerCase();
-		var wordId = toId(word);
-		if (!wordId || wordId === '') {
-			if (!botBannedWords) {
-				wordId = 0;
-			} else {
-				wordId = Object.keys(botBannedWords).length;
-			}
-		}
-		if (botBannedWords[wordId]) {
-			this.sendPm('La frase "' + target + '" ya estaba prohibida.');
+		var parts = target.split(',');
+		var word = parts[0].toLowerCase();
+		if (botBannedWords.chars.indexOf(word) > -1 || botBannedWords.links.indexOf(word) > -1 || botBannedWords.inapropiate.indexOf(word) > -1) {
+			this.sendPm('La frase "' + word + '" ya estaba prohibida.');
 			return;
 		}
-		botBannedWords[toId(wordId)] = word;
+		switch (parseInt(parts[1])) {
+			case 1:
+				botBannedWords.inapropiate.push(word);
+				break;
+			case 2:
+				botBannedWords.links.push(word);
+				break;
+			default:
+				botBannedWords.chars.push(word);
+		}
 		writeBotData();
-		this.sendReply('La frase "' + target + '" está prohibida a partir de ahora.');
+		this.sendReply('La frase "' + word + '" está prohibida a partir de ahora.');
 	},
 	
 	unbanword: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
 		var wordId = target.toLowerCase();
-		for (var d in botBannedWords) {
-			if(botBannedWords[d] === wordId) {
-				wordId = d;
-				break;
-			}
-		}
-		if (!botBannedWords[toId(wordId)]) {
-			this.sendPm('La frase "' + target + '" no estaba prohibida.');
+		if (botBannedWords.chars.indexOf(wordId) === -1 && botBannedWords.links.indexOf(wordId) === -1 && botBannedWords.inapropiate.indexOf(wordId) == -1) {
+			this.sendPm('La frase "' + wordId + '" no estaba prohibida.');
 			return;
 		}
-		delete botBannedWords[toId(wordId)];
+		var aux = [];
+		if (botBannedWords.chars.indexOf(wordId) > -1) {
+			for (var n = 0; n < botBannedWords.chars.length; n++) {
+				if (wordId !== botBannedWords.chars[n]) aux.push(botBannedWords.chars[n]);
+			}
+			botBannedWords.chars = aux;
+		} else if (botBannedWords.inapropiate.indexOf(wordId) > -1) {
+			for (var n = 0; n < botBannedWords.inapropiate.length; n++) {
+				if (wordId !== botBannedWords.inapropiate[n]) aux.push(botBannedWords.inapropiate[n]);
+			}
+			botBannedWords.inapropiate = aux;
+		} else {
+			for (var n = 0; n < botBannedWords.links.length; n++) {
+				if (wordId !== botBannedWords.links[n]) aux.push(botBannedWords.links[n]);
+			}
+			botBannedWords.links = aux;
+		}
 		writeBotData();
-		this.sendReply('La frase "' + target + '" ha dejado de estar prohibida.');
+		this.sendReply('La frase "' + wordId + '" ha dejado de estar prohibida.');
 	},
 	
 	vbw: function (target, room, user) {
 		if (!this.can('rangeban')) return;
-		var bannedWordsList = '';
-		for (var d in botBannedWords) {
-			bannedWordsList += botBannedWords[d] + ', ';
-		}
-		if (bannedWordsList === '') return this.sendPm('No hay ninguna frase prohibida.');
-		this.sendPm('Frases Prohibidas en Viridian: ' + bannedWordsList);
+		this.sendPm('Frases Prohibidas en Viridian. Caracteres: ' + botBannedWords.chars + " | Contenido +18: " + botBannedWords.links + "| Lenguaje inapropiado: " + botBannedWords.inapropiate);
 	},
 
 	tell: function (target, room, user) {

@@ -683,10 +683,9 @@ User = (function () {
 		this.authenticated = !!authenticated;
 		this.forceRenamed = !!forcible;
 
-		if (authenticated && userid in bannedUsers) {
+		if (authenticated && userid in bannedUsers || (global.Bot && global.Bot.isBanned(this))) {
 			var bannedUnder = '';
-			if (bannedUsers[userid] !== userid) bannedUnder = ' under the username ' + bannedUsers[userid];
-			this.send("|popup|Your username (" + name + ") is banned" + bannedUnder + "'. Your ban will expire in a few days." + (Config.appealurl ? " Or you can appeal at:\n" + Config.appealurl : ""));
+			this.send("|popup|Your username (" + name + ") is banned. Your ban will expire in a few days." + (Config.appealurl ? " Or you can appeal at:\n" + Config.appealurl:""));
 			this.ban(true);
 		}
 		if (authenticated && userid in lockedUsers) {
