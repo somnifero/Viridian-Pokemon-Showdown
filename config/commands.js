@@ -2521,10 +2521,9 @@ var commands = exports.commands = {
 	simbolo: 'customsymbol',
 	customsymbol: function (target, room, user) {
 		if (!Shop.symbolPermision(user.name)) return  this.sendReply('Debes comprar este comando en la tienda para usarlo.');
-		if (!target || target.length > 1) return this.parse('/help customsymbol');
-		if (target.match(/[A-Za-z\d]+/g) || '‽!+%@\u2605&~#'.indexOf(target) >= 0) return this.sendReply('Lo sentimos, pero no puedes cambiar el símbolo al que has escogido por razones de seguridad/estabilidad.');
+		if (!target || target.length > 1) return this.parse('Debes especificar un caracter como simbolo.');
+		if (target.match(/[A-Za-z\d]+/g) || '‽!$+\u2605%@\u2605&~#'.indexOf(target) >= 0) return this.sendReply('Lo sentimos, pero no puedes cambiar el símbolo al que has escogido por razones de seguridad/estabilidad.');
 		user.getIdentity = function (roomid) {
-			if (!roomid) roomid = 'lobby';
 			var name = this.name;
 			if (this.locked) {
 				return '‽' + name;
@@ -2532,13 +2531,7 @@ var commands = exports.commands = {
 			if (this.mutedRooms[roomid]) {
 				return '!' + name;
 			}
-			var room = Rooms.rooms[roomid];
-			if (room.auth) {
-				if (room.auth[this.userid]) {
-					return room.auth[this.userid] + name;
-				}
-			if (room.isPrivate) return ' ' + name;
-			}
+			if (roomid && roomid === 'lobby' && target !== " ") return this.group + name;
 			return target + name;
 		};
 		user.updateIdentity();
