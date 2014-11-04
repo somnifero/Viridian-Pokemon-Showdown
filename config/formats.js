@@ -1018,6 +1018,22 @@ exports.Formats = [
 		banlist: ['Uber', 'OU', 'BL']
 	},
 	{
+		name: "DPP UU Hispana",
+		section: "Past Generations",
+
+		mod: 'gen4',
+		ruleset: ['Pokemon', 'Standard'],
+		banlist: ['Uber', 'Abomasnow', 'Aerodactyl', 'Alakazam', 'Azelf', 'Blissey', 'Breloom' , 'Bronzong', 'Celebi', 'Cresselia', 'Crobat', 'Dragonite', 'Dusknoir', 'Electivire', 'Empoleon', 'Flygon', 'Forretress', 'Gallade', 'Gengar', 'Gliscor', 'Gyarados', 'Heatran', 'Heracross', 'Hippowdon', 'Honchkrow', 'Infernape', 'Jirachi', 'Jolteon', 'Kingdra', 'Lucario', 'Machamp', 'Magnezone', 'Mamoswine', 'Metagross', 'Ninjask', 'Porygon-Z' , 'Raikou', 'Rhyperior', 'Roserade', 'Rotom-Frost', 'Rotom-Mow', 'Rotom-Heat', 'Rotom-Fan', 'Rotom-Wash', 'Scizor', 'Shaymin', 'Skarmory', 'Smeargle', 'Snorlax', 'Staraptor', 'Starmie' , 'Suicune', 'Swampert', 'Tentacruel', 'Togekiss', 'Tyranitar', 'Vaporeon', 'Weavile', 'Wynaut', 'Yanmega', 'Zapdos']
+	},
+	{
+		name: "DPP NU Hispana",
+		section: "Past Generations",
+
+		mod: 'gen4',
+		ruleset: ['Pokemon', 'Standard'],
+		banlist: ['Uber', 'Abomasnow', 'Aerodactyl', 'Alakazam', 'Azelf', 'Blissey', 'Breloom' , 'Bronzong', 'Celebi', 'Cresselia', 'Crobat', 'Dragonite', 'Dusknoir', 'Electivire', 'Empoleon', 'Flygon', 'Forretress', 'Gallade', 'Gengar', 'Gliscor', 'Gyarados', 'Heatran', 'Heracross', 'Hippowdon', 'Honchkrow', 'Infernape', 'Jirachi', 'Jolteon', 'Kingdra', 'Lucario', 'Machamp', 'Magnezone', 'Mamoswine', 'Metagross', 'Ninjask', 'Porygon-Z' , 'Raikou', 'Rhyperior', 'Roserade', 'Rotom-Frost', 'Rotom-Mow', 'Rotom-Heat', 'Rotom-Fan', 'Rotom-Wash', 'Scizor', 'Shaymin', 'Skarmory', 'Smeargle', 'Snorlax', 'Staraptor', 'Starmie' , 'Suicune', 'Swampert', 'Tentacruel', 'Togekiss', 'Tyranitar', 'Vaporeon', 'Weavile', 'Wynaut', 'Yanmega', 'Zapdos', 'Aggron', 'Absol', 'Altaria', 'Ambipom', 'Arcanine', 'Azumarill', 'Blastoise', 'Blaziken', 'Charizard', 'Chansey', 'Claydol', 'Clefable', 'Cloyster', 'Drapion', 'Donphan', 'Drifblim', 'Dugtrio', 'Entei', 'Espeon', 'Exeggutor', 'Feraligatr', 'Froslass', 'Gardevoir', 'Hariyama', 'Hippopotas', 'Hitmontop', 'Hitmonlee', 'Houndoom', 'Jumpluff', 'Kabutops', 'Kangaskhan', 'Lanturn', 'Leafeon', 'Linoone', 'Ludicolo', 'Magmortar', 'Manectric', 'Marowak', 'Medicham', 'Mesprit', 'Milotic', 'Miltank', 'Mismagius', 'Moltres', 'Nidoking', 'Nidoqueen', 'Omastar', 'Pinsir', 'Poliwrath', 'Porygon2', 'Primeape', 'Qwilfish', 'Rampardos', 'Regirock', 'Registeel', 'Relicanth', 'Rotom', 'Sceptile', 'Scyther', 'Slaking', 'Snover', 'Slowbro', 'Spiritomb', 'Steelix', 'Swellow', 'Tangrowth', 'Tauros', 'Torterra', 'Toxicroak', 'Umbreon', 'Ursaring', 'Uxie', 'Venomoth', 'Venusaur', 'Weezing', 'Zangoose']
+	},
+	{
 		name: "[Gen 4] LC",
 		section: "Past Generations",
 
