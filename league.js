@@ -157,7 +157,7 @@ var cfbData = JSON.parse(fs.readFileSync(cfbDataFile).toString());
 exports.league = league;
 exports.pendingChallenges = pendingChallenges;
 exports.cfbData = cfbData;
-exports.leagueRoom = 'ligaviridian';
+exports.leagueRoom = 'ligaoficial';
 
 function writeLeagueData() {
 	exports.league = league;

@@ -611,7 +611,7 @@ exports.Formats = [
 	///////////////////////////////////////////////////////////////////
 
 	{
-		name: "Random OU Monotype",
+		name: "Random Monotype",
 		section: "Random Metagames",
 		column: 3,
 
@@ -624,7 +624,7 @@ exports.Formats = [
 		section: "Random Metagames",
 		mod: 'inverse',
 
-		searchShow: true,
+		searchShow: false,
 		team: 'random',
 		ruleset: ['Pokemon', 'HP Percentage Mod', 'Sleep Clause Mod']
 	},
@@ -632,7 +632,7 @@ exports.Formats = [
 		name: "Random Haxmons",
 		section: "Random Metagames",
 
-		searchShow: true,
+		searchShow: false,
 		team: 'random',
 		ruleset: ['Pokemon', 'HP Percentage Mod', 'Sleep Clause Mod', 'Freeze Clause'],
 		onModifyMovePriority: -100,
@@ -1018,7 +1018,7 @@ exports.Formats = [
 		banlist: ['Uber', 'OU', 'BL']
 	},
 	{
-		name: "DPP UU Hispana",
+		name: "[Gen 4] UU Hispana",
 		section: "Past Generations",
 
 		mod: 'gen4',
@@ -1026,7 +1026,7 @@ exports.Formats = [
 		banlist: ['Uber', 'Abomasnow', 'Aerodactyl', 'Alakazam', 'Azelf', 'Blissey', 'Breloom' , 'Bronzong', 'Celebi', 'Cresselia', 'Crobat', 'Dragonite', 'Dusknoir', 'Electivire', 'Empoleon', 'Flygon', 'Forretress', 'Gallade', 'Gengar', 'Gliscor', 'Gyarados', 'Heatran', 'Heracross', 'Hippowdon', 'Honchkrow', 'Infernape', 'Jirachi', 'Jolteon', 'Kingdra', 'Lucario', 'Machamp', 'Magnezone', 'Mamoswine', 'Metagross', 'Ninjask', 'Porygon-Z' , 'Raikou', 'Rhyperior', 'Roserade', 'Rotom-Frost', 'Rotom-Mow', 'Rotom-Heat', 'Rotom-Fan', 'Rotom-Wash', 'Scizor', 'Shaymin', 'Skarmory', 'Smeargle', 'Snorlax', 'Staraptor', 'Starmie' , 'Suicune', 'Swampert', 'Tentacruel', 'Togekiss', 'Tyranitar', 'Vaporeon', 'Weavile', 'Wynaut', 'Yanmega', 'Zapdos']
 	},
 	{
-		name: "DPP NU Hispana",
+		name: "[Gen 4] NU Hispana",
 		section: "Past Generations",
 
 		mod: 'gen4',

@@ -521,7 +521,7 @@ var cmds = {
 			case 'new':
 			case 'create':
 				if (params.length < 6) return this.sendReply("Usage: /teamtour new, [standard/total/lineups], [tier/multitier], [tamaño], [equipoA], [equipoB]");
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournaments', room)) return false;
 				if (teamTour.getTourData(roomId)) return this.sendReply("Ya había un torneo de equipos en esta sala.");
 				if (War.getTourData(roomId)) return this.sendReply("Ya había una guerra en esta sala.");
 				if (tour[roomId] && tour[roomId].status != 0) return this.sendReply('Ya hay un torneo en curso.');
@@ -557,7 +557,7 @@ var cmds = {
 			case 'end':
 			case 'fin':
 			case 'delete':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournaments', room)) return false;
 				var tourData = teamTour.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ningún torneo de equipos en esta sala");
 				this.logModCommand(user.name + " ha cancelado el torneo de equipos entre " + toId(tourData.teamA) + " y " + toId(tourData.teamB) + ".");
@@ -591,7 +591,7 @@ var cmds = {
 				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha salido del torneo por equipos. Quedan ' + freePlaces + ' plazas.');
 				break;
 			case 'auth':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 3) return this.sendReply("Usage: /teamtour auth, [Capitan1], [Capitan2]");
 				var userCapA = Users.getExact(params[1]);
 				if (!userCapA) return this.sendReply("El usuario " + Tools.escapeHTML(params[6]) + " no está disponible.");
@@ -616,7 +616,7 @@ var cmds = {
 			case 'empezar':
 			case 'begin':
 			case 'start':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournaments', room)) return false;
 				var tourData = teamTour.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ningún torneo de equipos en esta sala.");
 				if (tourData.tourRound !== 0) return this.sendReply("El torneo ya había empezado.");
@@ -627,7 +627,7 @@ var cmds = {
 				Rooms.rooms[room.id].addRaw(teamTour.viewTourStatus(roomId));
 				break;
 			case 'size':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 2) return this.sendReply("Usage: /teamtour size, [size]");
 				var err = teamTour.sizeTeamTour(roomId, params[1]);
 				if (err) return this.sendReply(err);
@@ -642,7 +642,7 @@ var cmds = {
 				break;
 			case 'disqualify':
 			case 'dq':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 2) return this.sendReply("Usage: /teamtour dq, [user]");
 				var tourData = teamTour.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ningún torneo de equipos en esta sala");
@@ -655,7 +655,7 @@ var cmds = {
 				}
 				break;
 			case 'replace':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 3) return this.sendReply("Usage: /teamtour replace, [userA], [userB]");
 				var usera = Users.getExact(params[1]);
 				if (usera) usera = usera.name; else usera = toId(params[1]);
@@ -670,7 +670,7 @@ var cmds = {
 				this.addModCommand(user.name + ': ' + usera + ' es reemplazado por ' + userb + ' en el Torneo de equipos.');
 				break;
 			case 'invalidate':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 2) return this.sendReply("Usage: /teamtour invalidate, [user]");
 				var tourData = teamTour.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ningún torneo de equipos en esta sala");
@@ -710,6 +710,7 @@ Rooms.global.startBattle = function(p1, p2, format, rated, p1team, p2team) {
 			newRoom.teamTour = 1;
 			teamTour.setActiveMatchup(matchup.tourId, matchup.matchupId, newRoom.id);
 			Rooms.rooms[matchup.tourId].addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla de torneo entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>");
+			Rooms.rooms[matchup.tourId].update();
 	}
 	//end tour
 
@@ -734,6 +735,7 @@ Rooms.BattleRoom.prototype.win = function(winner) {
 				Rooms.rooms[matchup.tourId].addRaw('<b>' + winner + '</b> ha ganado su batalla contra ' + losser + '.</b>');
 				teamTour.dqTeamTour(matchup.tourId, losser);
 			}
+			Rooms.rooms[matchup.tourId].update();
 		}
 	}
 	//end tour

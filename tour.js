@@ -96,18 +96,10 @@ exports.tour = function(t) {
 			return user.can('ban');
 		},
 		midauth: function(user, room) {
-			if (user.group === '+' || user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') return true;
-			if (!Rooms.rooms[toId(room)].auth) return false;
-			if (!Rooms.rooms[toId(room)].auth[toId(user.name)]) return false;
-			if (Rooms.rooms[toId(room)].auth[toId(user.name)] === '+' || Rooms.rooms[toId(room)].auth[toId(user.name)] === '%' || Rooms.rooms[toId(room)].auth[toId(user.name)] === '@' || Rooms.rooms[toId(room)].auth[toId(user.name)] === '#') return true;
-			return false;
+			return user.can("joinbattle", room);
 		},
 		lowauth: function(user, room) {
-			if (user.group === '+' || user.group === '%' || user.group === '@' || user.group === '&' || user.group === '~') return true;
-			if (!Rooms.rooms[toId(room)].auth) return false;
-			if (!Rooms.rooms[toId(room)].auth[toId(user.name)]) return false;
-			if (Rooms.rooms[toId(room)].auth[toId(user.name)] === '+' || Rooms.rooms[toId(room)].auth[toId(user.name)] === '%' || Rooms.rooms[toId(room)].auth[toId(user.name)] === '@' || Rooms.rooms[toId(room)].auth[toId(user.name)] === '#') return true;
-			return false;
+			return user.can("joinbattle", room);
 		},
 		remsg: function(apparent, useronly) {
 			if (!isFinite(apparent)) return '';

@@ -541,7 +541,7 @@ var cmds = {
 			case 'new':
 			case 'create':
 				if (params.length < 6) return this.sendReply("Usage: /war new, [standard/total/lineups], [tier/multitier], [tamaño], [clanA], [clanB]");
-				if (!this.can('broadcast', room)) return false;
+				if (!this.can('joinbattle', room)) return false;
 				if (!room.isOfficial) return this.sendReply("Este comando solo puede ser usado en salas Oficiales.");
 				if (War.getTourData(roomId)) return this.sendReply("Ya había una guerra en esta sala.");
 				if (tour[roomId] && tour[roomId].status != 0) return this.sendReply('Ya hay un torneo en  esta sala.');
@@ -587,7 +587,7 @@ var cmds = {
 			case 'end':
 			case 'fin':
 			case 'delete':
-				if (!this.can('broadcast', room)) return false;
+				if (!this.can('joinbattle', room)) return false;
 				var tourData = War.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ninguna guerra en esta sala.");
 				this.logModCommand(user.name + " ha cancelado la guerra entre " + toId(tourData.teamA) + " y " + toId(tourData.teamB) + ".");
@@ -618,7 +618,7 @@ var cmds = {
 				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha salido de la guerra. Quedan ' + freePlaces + ' plazas.');
 				break;
 			case 'auth':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 3) return this.sendReply("Usage: /war auth, [Capitan1], [Capitan2]");
 				var targetClan;
 				var tourData = War.getTourData(roomId);
@@ -649,7 +649,7 @@ var cmds = {
 			case 'empezar':
 			case 'begin':
 			case 'start':
-				if (!this.can('broadcast', room)) return false;
+				if (!this.can('joinbattle', room)) return false;
 				var tourData = War.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ninguna guerra en esta sala.");
 				if (tourData.tourRound !== 0) return this.sendReply("La guerra ya había empezado.");
@@ -660,7 +660,7 @@ var cmds = {
 				Rooms.rooms[room.id].addRaw(War.viewTourStatus(roomId));
 				break;
 			case 'size':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 2) return this.sendReply("Usage: /war size, [size]");
 				var err = War.sizeTeamTour(roomId, params[1]);
 				if (err) return this.sendReply(err);
@@ -679,7 +679,7 @@ var cmds = {
 				var clanUser = Clans.findClanFromMember(params[1]);
 				var canReplace = false;
 				if (clanUser && (Clans.authMember(clanUser, user.name) === 1 || Clans.authMember(clanUser, user.name) === 2 || Clans.authMember(clanUser, user.name) === 3)) canReplace = true;
-				if (!canReplace && !this.can('staff', room)) return false;
+				if (!canReplace && !this.can('tournamentsmoderation', room)) return false;
 				var tourData = War.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ninguna guerra en esta sala");
 				if (!War.dqTeamTour(roomId, params[1], 'cmd')) return this.sendReply("No se pudo descalificar al usuario.");
@@ -695,7 +695,7 @@ var cmds = {
 				var clanUser = Clans.findClanFromMember(params[1]);
 				var canReplace = false;
 				if (clanUser && (Clans.authMember(clanUser, user.name) === 1 || Clans.authMember(clanUser, user.name) === 2 || Clans.authMember(clanUser, user.name) === 3)) canReplace = true;
-				if (!canReplace && !this.can('staff', room)) return false;
+				if (!canReplace && !this.can('tournamentsmoderation', room)) return false;
 				var clanReplace = Clans.findClanFromMember(params[2]);
 				if (toId(clanUser) !== toId(clanReplace)) return this.sendReply("Al reemplazar en una guerra, ambos usuarios deben pertener al mismo clan");
 				var usera = Users.getExact(params[1]);
@@ -711,7 +711,7 @@ var cmds = {
 				this.addModCommand(user.name + ': ' + usera + ' es reemplazado por ' + userb + ' en la guerra.');
 				break;
 			case 'invalidate':
-				if (!this.can('staff', room)) return false;
+				if (!this.can('tournamentsmoderation', room)) return false;
 				if (params.length < 2) return this.sendReply("Usage: /war invalidate, [user]");
 				var tourData = War.getTourData(roomId);
 				if (!tourData) return this.sendReply("No había ninguna guerra en esta sala.");
@@ -751,6 +751,7 @@ Rooms.global.startBattle = function(p1, p2, format, rated, p1team, p2team) {
 		newRoom.war = 1;
 		War.setActiveMatchup(matchup.tourId, matchup.matchupId, newRoom.id);
 		Rooms.rooms[matchup.tourId].addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>");
+		Rooms.rooms[matchup.tourId].update();
 	}
 	//end tour
 
@@ -774,6 +775,7 @@ Rooms.BattleRoom.prototype.win = function(winner) {
 			} else {
 				Rooms.rooms[matchup.tourId].addRaw('<b>' + winner + '</b> ha ganado su batalla contra ' + losser + '.</b>');
 				War.dqTeamTour(matchup.tourId, losser);
+				Rooms.rooms[matchup.tourId].update();
 			}
 		}
 	}

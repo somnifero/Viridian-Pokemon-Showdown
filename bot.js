@@ -28,7 +28,7 @@ exports.inBattle = false;
 exports.acceptChallegesDenied = function (user, format) {
 	if (!(format in {'challengecupmetronome':1, 'randombattle':1, 'randomoumonotype':1, 'randominversebattle':1,'randomskybattle':1, 'randomubers':1, 'randomlc':1, 'randomcap':1, 'randomhaxmons':1})) return 'Debido a mi configuración actual, no acepto retos de formato ' + format;
 	if (battleInProgress[toId(user.name)])  return 'Ya estoy en una batalla contigo, espera a que termine para retarme de nuevo.';
-	if (user.can('broadcast')) return 'auth';
+	if (user.can('joinbattle')) return 'auth';
 	if (exports.inBattle) return 'Estoy ocupado en otra batalla, retame cuando esta termine.';
 	return false;
 };
@@ -53,12 +53,12 @@ if (!botBannedWords.links) {
 }
 
 var config = {
-	name: 'Viridian Bot',
+	name: 'Arena Bot',
 	userid: function () {
 		return toId(this.name);
 	},
 	group: '&',
-	customavatars: 'viridianbot.gif',
+	customavatars: 'arenabot.gif',
 	rooms: ['lobby'],
 	punishvals: {
 		1: 'warn',
@@ -184,7 +184,7 @@ var parse = {
 			if (message.toLowerCase().indexOf(botBannedWords.chars[d]) > -1) {
 				if (pointVal < 2) {
 					pointVal = 2;
-					muteMessage = ', Caracteres no permitidos';
+					muteMessage = ', Su mensaje contiene una frase prohibida';
 					break;
 				}
 			}
@@ -218,7 +218,7 @@ var parse = {
 		}
 		// moderation for stretching (over x consecutive characters in the message are the same)
 		//|| message.toLowerCase().match(/(..+)\1{4,}/g
-		var stretchMatch = message.toLowerCase().match(/(.)\1{7,}/g); // matches the same character (or group of characters) 8 (or 5) or more times in a row
+		var stretchMatch = message.toLowerCase().match(/(.)\1{15,}/g); // matches the same character (or group of characters) 8 (or 5) or more times in a row
 		if (stretchMatch) {
 			if (pointVal < 1) {
 				pointVal = 1;
@@ -419,22 +419,22 @@ var parse = {
 var commands = {
 	
 	about: function (target, room, user) {
-		if (!this.can('broadcast')) return this.sendPm('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
+		if (!this.can('joinbattle')) return this.sendPm('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 		this.sendReply('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 	},
 	
 	info: function (target, room, user) {
-		if (!this.can('broadcast')) return this.sendPm('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
+		if (!this.can('joinbattle')) return this.sendPm('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 		this.sendReply('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 	},
 	
 	foro: function (target, room, user) {
-		if (!this.can('broadcast')) return this.sendPm('Foro del servidor Viridian: http://viridianshowdown.hol.es/');
+		if (!this.can('joinbattle')) return this.sendPm('Foro del servidor Viridian: http://viridianshowdown.hol.es/');
 		this.sendReply('Foro del servidor Viridian: http://viridianshowdown.hol.es/');
 	},
 	
 	guia: function (target, room, user) {
-		if (!this.can('broadcast')) return this.sendPm('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
+		if (!this.can('joinbattle')) return this.sendPm('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
 		this.sendReply('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
 	},
 	
@@ -590,22 +590,22 @@ var commands = {
 		if (!targetUser) return this.sendReply('No se nada acerca de ' + toId(target) + '.');
 		switch (targetUser.group) {
 			case '~':
-				shopData = 'Administrador del servidor Viridian';
+				shopData = 'Administrador del servidor de Pokespain';
 				break;
 			case '&':
-				shopData = 'Leader del servidor Viridian';
+				shopData = 'Leader del servidor de Pokespain';
 				break;
 			case '@':
-				shopData = 'Moderador del servidor Viridian';
+				shopData = 'Moderador del servidor de Pokespain';
 				break;
 			case '%':
-				shopData = 'Driver del servidor Viridian';
+				shopData = 'Driver del servidor de Pokespain';
 				break;
 			case '+':
-				shopData = 'Voiced del servidor Viridian';
+				shopData = 'Voiced del servidor de Pokespain';
 				break;
 			default:
-				shopData = 'Usuario del servidor Viridian';
+				shopData = 'Usuario del servidor de Pokespain';
 		}
 		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData );
 	},
@@ -625,7 +625,7 @@ var commands = {
 		var parts = target.split(',');
 		if (parts.length < 2) return;
 		var choice = parts[Math.floor(Math.random() * parts.length)];
-		if (!this.can('broadcast')) return this.sendPm(choice);
+		if (!this.can('joinbattle')) return this.sendPm(choice);
 		this.sendReply(' ' + choice);
 	},
 
@@ -656,7 +656,7 @@ var commands = {
 		return function (target, room, user) {
 			if (!target) return;
 			var message = reply[Math.floor(Math.random() * reply.length)];
-			if (!this.can('broadcast')) return this.sendPm(message);
+			if (!this.can('joinbattle')) return this.sendPm(message);
 			this.sendReply(message);
 		};
 	})(),
@@ -689,13 +689,17 @@ var commands = {
 
 		return function (target, room, user) {
 			var message = reply[Math.floor(Math.random() * reply.length)];
-			if (!this.can('broadcast')) return this.sendPm(message);
+			if (!this.can('joinbattle')) return this.sendPm(message);
 			this.sendReply(message);
 		};
 	})(),
-
+	
+	maketour: function (target, room, user) {
+		Bot.commands.maketournament.call(this, target, room, user, false);
+	},
+	
 	maketournament: function (target, room, user, noResource) {
-		if (!this.can('broadcast') && noResource !== 'host') return;
+		if (!this.can('joinbattle') && noResource !== 'host') return;
 		if (Tournaments.tournaments[room.id]) return this.sendPm('Ya hay un torneo en esta Sala.');
 
 		var parts = target.split(','),
@@ -715,12 +719,12 @@ var commands = {
 					if (counter === time) {
 						if (Tournaments.tournaments[room.id].generator.users.size < 2) {
 							self.parse('/tour end');
-							return self.sendReply('/announce El torneo fue cancelado por falta de Jugadores.');
+							return self.sendReply('**El torneo fue cancelado por falta de Jugadores.**');
 						}
 						if (!Tournaments.tournaments[room.id].isTournamentStarted) {
 						self.parse('/tour start');
 						self.parse('/tour autodq 2');
-						return self.sendReply('/announce El Torneo ha comenzado, suerte a todos los participantes. Si vuestro oponente no reta o acepta será descalificado en 2 minutos.');
+						return self.sendReply('**El Torneo ha comenzado!**');
 						}
 					}
 					if ((time - counter) === 1) {
@@ -746,7 +750,7 @@ var commands = {
 					if (!Tournaments.tournaments[room.id].isTournamentStarted) {
 						self.parse('/tour start');
 						self.parse('/tour autodq 2');
-						return self.sendReply('/announce El Torneo ha comenzado, suerte a todos los participantes. Si vuestro oponente no reta o acepta será descalificado en 2 minutos.');
+						return self.sendReply('**El Torneo ha comenzado!**');
 					}
 				}
 				playerLoop();
@@ -756,7 +760,7 @@ var commands = {
 	},
 
 	hosttournament: function (target, room, user) {
-		if (!this.can('hotpatch')) return;
+		if (!this.can('ban')) return;
 		if (!room) return;
 		if (target.toLowerCase() === 'end' || target.toLowerCase() === 'off') {
 			if (!Bot.config.hosting[room.id]) return this.sendPm('Ahora mismo no estoy haciendo torneos.');
@@ -837,7 +841,7 @@ var commands = {
 		var options = ['roca', 'papel', 'tijeras'],
 			rng = options[Math.floor(Math.random() * options.length)],
 			target = toId(target);
-		if (!this.can('broadcast')) {
+		if (!this.can('joinbattle')) {
 			if (rng === target) return this.sendPm('Empate!');
 			if (rng === options[0]) {
 				if (target === options[1]) return this.sendPm(user.name + ' gana! Tenía ' + rng + '.');
