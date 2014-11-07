@@ -352,6 +352,18 @@ exports.autoEnd = function (room) {
 			return;
 		}
 	}
+	if (scoreA === scoreB && wars[roomId].type === 'lineups') {
+		var matchups = {};
+		matchups[toId(wars[roomId].authA)] = {from: wars[roomId].authA, to: wars[roomId].authB, battleLink: '', result: 0};
+		wars[roomId].matchups = matchups;
+		wars[roomId].teamAMembers = {};
+		wars[roomId].teamAMembers[toId(wars[roomId].authA)] = 1;
+		wars[roomId].teamBMembers = {};
+		wars[roomId].teamBMembers[toId(wars[roomId].authB)] = 1;
+		++wars[roomId].tourRound;
+		Rooms.rooms[roomId].addRaw(exports.viewTourStatus(roomId));
+		return;
+	}
 	//raw of end
 	var htmlEndTour = '';
 	if (scoreA > scoreB) {
@@ -465,9 +477,9 @@ exports.viewTourStatus = function (room) {
 		for (var t in wars[roomId].byes) {
 			var userFreeBye = Users.getExact(t);
 			if (!userFreeBye) {userFreeBye = t;} else {userFreeBye = userFreeBye.name;}
-			htmlSource += '<center><small><font color=green>' + userFreeBye + ' ha pasado a la siguiente ronda.</font></small></center><br />';
+			htmlSource += '<center><small><font color=green>' + userFreeBye + ' ha pasado a la siguiente ronda.</font></small></center>';
 		}
-		var matchupsTable = '<table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(Clans.getProfile(wars[roomId].teamA).logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
+		var matchupsTable = '<br /><table  align="center" border="0" cellpadding="0" cellspacing="0"><tr><td align="right"><img width="100" height="100" src="' + encodeURI(Clans.getProfile(wars[roomId].teamA).logo) + '" />&nbsp;&nbsp;&nbsp;&nbsp;</td><td align="center"><table  align="center" border="0" cellpadding="0" cellspacing="0">';
 		for (var i in wars[roomId].matchups) {
 			var userk = Users.getExact(wars[roomId].matchups[i].from);
 			if (!userk) {userk = wars[roomId].matchups[i].from;} else {userk = userk.name;}
