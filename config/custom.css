@@ -1,0 +1,62 @@
+/* backgrounds */
+body {
+    background-image: url(http://pokecompany.com/images/juegos/heartsoul/ciudadiris.jpg) !important
+}
+
+.chat-log {
+    background: url(http://img3.wikia.nocookie.net/__cb20130604185958/fakemon/es/images/e/e4/Tribal_Pidgeot_color.png) right top no-repeat
+}
+
+.ps-room.ps-room-light {
+    background: rgba(255, 250, 205, .85);
+    color: #000
+}
+
+/* buttons */
+.menugroup button.big {
+    font-size: 12pt
+}
+
+.menugroup .button {
+    background: #C33;
+}
+
+.menugroup .button:hover {
+    background: #900;
+}
+
+/*infobox*/
+.infobox {
+    background-color: #FFC
+}
+
+/*hover tabs*/
+.tabbar a.button.cur, .tabbar a.button.cur:hover {
+    color: #FFF;
+    background: #900;
+    border: solid 1px #000
+}
+
+.tabbar a.button {
+    color: #FFF;
+    background: #C33;
+    border: solid 1px #000
+}
+
+.tabbar:hover a.button:hover {
+    color: #FFF;
+    background: #900;
+    border: solid 1px #000
+}
+
+.maintabbarbottom {
+    background: #900
+}
+
+/* clans */
+.lemaclan {
+    font-style: italic;
+    font-size: 16px;
+    text-align: center;
+    margin-right: 5px
+}
