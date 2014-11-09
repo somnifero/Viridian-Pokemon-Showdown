@@ -851,7 +851,7 @@ exports.Formats = [
 		
 		mod: 'gen4',
 		maxForcedLevel: 50,
-		ruleset: ['Species Clause', 'Item Clause', 'Team Preview VGC'],
+		ruleset: ['Species Clause', 'Item Clause'],
 		banlist: ['Unreleased', 'Illegal', 'Soul Dew', 'Huntail + Shell Smash + Sucker Punch', 'Manaphy', 'Mew', 'Arceus', 'Shaymin', 'Darkrai', 'Celebi', 'Jirachi', 'Deoxys', 'Phione'],
 		onBegin: function () {
 			this.debug('cutting down to 4');
@@ -863,7 +863,7 @@ exports.Formats = [
 		validateTeam: function (team) {
 			if (team.length < 4) return ['You must bring at least four Pokémon.'];
 			var legendCount = 0;
-			for (var i = 0; i < team.length; i++) {
+			for (var i = 0; i < 4; i++) {
 				var pokemon = Tools.getTemplate(team[i].species || team[i].name);
 				if (pokemon.species in {'Mewtwo': 1, 'Lugia': 1, 'Ho-Oh': 1, 'Rayquaza': 1, 'Kyogre': 1, 'Groudon': 1, 'Dialga': 1, 'Palkia': 1, 'Giratina': 1}) legendCount ++;
 			}
