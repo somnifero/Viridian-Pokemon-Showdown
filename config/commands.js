@@ -2696,88 +2696,73 @@ var commands = exports.commands = {
 	/*********************************************************
 	 * League commands
 	 *********************************************************/
-
-	league: 'liga',
-	lideres: 'liga',
-	liga: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
-		if (!target) return this.sendReplyBox(League.getData("main").htmlDesc);
-		if (toId(target) === 'help' || toId(target) === 'ayuda') {
-			return this.sendReplyBox(
-			"<center><h3><b><u>Liga Viridian - Ayuda</u></b></h3></center>" +
-			"/liga [líder/puesto] - Muestra una caja con la información sobre un reto de la liga, para información general /liga sin argumentos. Los nombres de los puestos se escriben Gym/Elite4 y el tipo. Ej: /liga Elite4 Steel<br />" +
-			"/medallas - Muestra las medallas ganadas por un usuario.<br />" +
-			"/gymdesc [html] - Establece las reglas del gimnasio/elite4<br />" +
-			"/darmedalla [usuario] - Entrega una medalla a un retador.<br />" +
-			"/quitarmedalla [usuario] - Retira una medalla entregada por incumplimiento de las reglas.<br />" +
-			"/retarliga [usuario] - Comando para solicitar un desafio a un iembro de la liga.<br />" +
-			"/desafios - Muestra la lista de desafios pendientes.<br />" +
-			"/dchall [usuario] - Confirma que un desafío fue concluido y lo elimina de la lista de pendientes.<br />" +
-			"/blockleague - Bloquea los desafios oficiales de la liga.<br />" +
-			"/unblockleague - Desbloquea los desafios de la liga.<br />" +
-			"/setgym [medal], [name/desc/color/image], [data] - Comando para administrar los datos de la liga.<br />" + 
-			"/setgymleader [medal], [user] - Comando para cambiar un puesto en la liga.<br />" +
-			"/addgym [medal] - Comando para agregar un puesto a la liga.<br />" +
-			"/deletegym [medal] - Comando para eliminar un puesto en la liga.<br />" +
-			"/leaguelist - Comando para mostrar los puestos de la liga.<br />"
-			);
-		}
-		var dataLeague = League.getData(target);
-		if (dataLeague) return this.sendReplyBox(dataLeague.htmlDesc);
-		var medalId = League.findMedalFromLeader(target);
-		if (medalId) return this.sendReplyBox(League.getData(medalId).htmlDesc);
-		return this.sendReply('Información no disponible. Usa /liga sin argumentos para ver la lista de gyms.');
+	 
+	ayudaliga: 'leaguehelp',
+	leaguehelp: function (target, room, user) {
+		return this.sendReplyBox(
+			"<center><h3><b><u>Lista de Comandos para las Ligas</u></b></h3></center>" +
+			"<br /><b>Comandos Usuales</b><br />" +
+			"/medallas [user] - Muestra las medallas con las que cuenta un usuario.<br />" +
+			"/liga [name] - Comando para mostrar la informacion más general de una liga (miembros y sala).<br />" +
+			"/darmedalla [user] - Entrega una medalla como miembro de una liga.<br />"  +
+			"/quitarmedalla [user] - Retira una medalla como miembro de una liga.<br />" +
+			"<br /><b>Comandos Administrativos</b><br />" +
+			"/medallist - Muestra la lista de Ids de la base de datos de medallas.<br />" +
+			"/medaldata [id] - Muestra una de las medallas por su ID.<br />" +
+			"/addmedal [id], [name], [width], [height], [image] - Agrega una medalla al server.<br />" +
+			"/deletemedal [id] - Elimina una medalla.<br />" +
+			"/editmedal [id], [name/image/width/height], [data] - Modifica las propiedades de una medalla.<br />" +
+			"/leguelist - Muestra la lista de Ids de la base de datos de ligas.<br />"  +
+			"/addleague [id], [name], [room] - Comando para registrar una liga.<br />"  +
+			"/deleteleague [id] - Comando para eliminar una liga.<br />"  +
+			"/editleague [id], [name/room], [data] - Edita la informacion de la liga.<br />"  +
+			"/setgymleader [id-league], [user], [id-medal] - Establece un usuario como miembro de la liga.<br />"  +
+			"/setgymleader [id-league], [user], [id-medal] - Establece un usuario como elite de la liga.<br />"  +
+			"/removegymleader [id-league], [id-medal] - Elimina un puesto de una liga.<br />"  +
+			"/darmedalla [user], (id) - Entrega una medalla.<br />"  +
+			"/quitarmedalla [user], (id) - Retira una medalla.<br />"
+		);
 	},
 	
-	frentebatalla: 'frontier',
-	frontier: function (target, room, user) {
-		if (!target || toId(target) === "") return this.parse("/liga fmain");
-		this.parse("/liga" + target);
+	medallist: function (target, room, user) {
+		if (!this.can("league")) return false;
+		return this.sendReplyBox("Medallas (ID): " + League.getAllMedals());
 	},
 	
-	cfb: function (target, room, user) {
-		var autoData = false;
-		if (!target) autoData = true;
-		if (!this.canBroadcast()) return false;
-		var userName = user.name;
-		if (!autoData) {
-			userName = toId(target);
-			var userh = Users.getExact(target);
-			if (userh) userName = userh.name;
-		}
-		if (League.hasCFB(userName)) return this.sendReplyBox(League.getCFB(userName));
-		return this.sendReplyBox(userName + " no posee el Certificado del Frente de Batalla.");
+	medaldata: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna medalla.");
+		var medalData = League.getMedalData(target);
+		if (!medalData) return this.sendReply("La medalla especificada no existe.");
+		return this.sendReplyBox('<b>' + Tools.escapeHTML(medalData.name) + ':</b><br /><img src="' + encodeURI(medalData.image) + '" title="' + Tools.escapeHTML(medalData.name) + '" width="' + Tools.escapeHTML(medalData.width) + '" height="' + Tools.escapeHTML(medalData.height) + '" />&nbsp;');
 	},
 	
-	givecfb: function (target, room, user) {
-		if (!target) return this.sendReply('Usage: /givecfb [user]');
-		if (!this.can('rangeban')) return false;
-		var userT = Users.getExact(target);
-		if (!userT) return this.sendReply("El usuario debe estar conectado.");
-		if (League.hasCFB(userT.name)) return this.sendReply("El usuario ya poseía el certificado de frente de Batalla");
-		League.giveCFB(userT.name);
-		userT.popup(user.name + ' te ha entregado un Certificado de Frente de Batalla. \n¡Enhorabuena por ganar en el Frente de batalla!\n');
-		return this.sendReply('Certificado de Frente de Batalla entregado a ' + userT.name);
+	newmedal: 'addmedal',
+	addmedal: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna medalla.");
+		var params = target.split(',');
+		if (!params || params.length < 5) return this.sendReply("Usage: /addmedal [id], [name], [width], [height], [image]");
+		if (League.newMedal(params[0], params[1], params[4], params[2], params[3])) return this.sendReply("Medalla: " + toId(params[0]) + " creada con exito.");
+		this.sendReply("La medalla especificada ya existía.");
 	},
 	
-	removecfb: function (target, room, user) {
-		if (!target) return this.sendReply('Usage: /removecfb [user]');
-		if (!this.can('rangeban')) return false;
-		if (!League.hasCFB(target)) return this.sendReply("El usuario no poseía el certificado de frente de Batalla");
-		League.removeCFB(target);
-		return this.sendReply('Certificado de Frente de Batalla retirado a ' + toId(target));
+	deletemedal: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna medalla.");
+		if (League.deleteMedal(target)) return this.sendReply("Medalla: " + toId(target) + " eliminada con exito.");
+		this.sendReply("La medalla especificada no existe.");
 	},
 	
-	setcfb: function (target, room, user) {
-		if (!this.can('rangeban')) return false;
-		if (!target) {
-			this.sendReply('Certificado de Frente de Batalla (html): ');
-			this.sendReplyBox(Tools.escapeHTML(League.getCFB("[username]")));
-			return;
-		}
-		League.setCFB(target);
-		this.sendReply('Certificado de Frente de Batalla modificado: ');
-		this.sendReplyBox(League.getCFB("Usuario"));
+	medaledit: 'editmedal',
+	editmedal: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna medalla.");
+		var params = target.split(',');
+		if (!params || params.length < 3) return this.sendReply("Usage: /editmedal [id], [name/image/width/height], [data]");
+		var opc = toId(params[1]).substr(0,1);
+		if (League.editMedal(params[0], opc, params[2])) return this.parse("/medaldata " + params[0]);
+		this.sendReply("Alguno de los datos no es correcto.");
 	},
 	
 	medals: 'medallas',
@@ -2793,244 +2778,153 @@ var commands = exports.commands = {
 		} else {
 			userT = targetUser;
 		}
-		var html = '<center><h2>Medallas de ' + userT + '</h2>';
-		var elite4Wins = 0, gymWins = 0, frontWins = 0, medalData;
-		var elite4HTML = '', gymHTML = '', frontHTML = '';
-		var checkList = League.getGymCheckList("elite4");
-		for (var i in checkList) {
-			if (League.haveMedal(targetUser, checkList[i])) {
-				medalData = League.getData(checkList[i]);
-				++elite4Wins;
-				elite4HTML += '<img width="130" title="Medalla por ganar a ' + Tools.escapeHTML(medalData.leader) + ', ' + Tools.escapeHTML(medalData.desc) + '" src="' + encodeURI(medalData.medalImage) + '" />&nbsp;';
-			}
-		}
-		if (elite4Wins > 0) html += '<h3>Elite 4</h3><p>' + elite4HTML + '</p>';
-		checkList = League.getGymCheckList("gym");
-		for (var i in checkList) {
-			if (League.haveMedal(targetUser, checkList[i])) {
-				medalData = League.getData(checkList[i]);
-				++gymWins;
-				gymHTML += '<img width="130" title="Medalla por ganar a ' + Tools.escapeHTML(medalData.leader) + ', ' + Tools.escapeHTML(medalData.desc) + '" src="' + encodeURI(medalData.medalImage) + '" />&nbsp;';
-			}
-		}
-		if (gymWins > 0) html += '<h3>Gimnasios</h3><p>' + gymHTML + '</p>';
-		checkList = League.getGymCheckList("frontier");
-		for (var i in checkList) {
-			if (League.haveMedal(targetUser, checkList[i])) {
-				medalData = League.getData(checkList[i]);
-				++frontWins;
-				frontHTML += '<img width="130" title="Medalla por ganar a ' + Tools.escapeHTML(medalData.leader) + ', ' + Tools.escapeHTML(medalData.desc) + '" src="' + encodeURI(medalData.medalImage) + '" />&nbsp;';
-			}
-		}
-		if (frontWins > 0) html += '<h3>Frente de Batalla</h3><p>' + frontHTML + '</p>';
-		if (gymWins === 0 && elite4Wins === 0 && frontWins === 0) html += '<h3>Aún sin ninguna medalla.</h3>';
+		var html = '<center><h2>Medallas de ' + userT + '</h2><center>';
+		html += League.getMedalRaw(userT);
 		return this.sendReplyBox(html);
 	},
-
-	leaguedata: function (target, room, user) {
-		if (!this.can('leagueadmin')) return false;
-		var dataLeague = League.getData(target);
-		if (dataLeague) {
-			return this.sendReplyBox(
-				'<b>Puesto: <font color="' + dataLeague.colorGym + '">' + dataLeague.desc + '</font>.<br />' +
-				'L&iacute;der: ' + dataLeague.leader + '<br /><br />' +
-				'<img width="130" title="Medalla por ganar a ' + dataLeague.leader + ', ' + dataLeague.desc + '" src="' + encodeURI(dataLeague.medalImage) + '" />' +
-				'</b>'
-			);
-		}
-		return this.sendReply('Información no disponible. Usa /liga sin argumentos para ver la lista de gyms.');
-	},
-
-	setgymleader: function (target, room, user) {
-		if (!this.can('leagueadmin')) return false;
-		if (!target) return this.sendReply('Usage: /setgymleader [medalId], [leader]');
-		var params = target.split(',');
-		if (!params || params.length < 2) return this.sendReply("Usage: /setgymleader [medalId], [leader]");
-		var userT = Users.get(params[1]);
-		if (!userT && toId(params[1]) !== 'off') return this.sendReply("El usuario debe estar conectado.");
-		var leader = '';
-		if (userT) leader = userT.name;
-		if (!League.setGymLeader(params[0], leader)) {
-			return this.sendReply("Puesto inexistente o en usuario ya era líder de otro.");
+	
+	leaguemedal: 'medallaliga',
+	medallaliga: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		var autoData = false;
+		var targetUser = toId(user.name);
+		if (target) targetUser = toId(target);
+		var userT = Users.get(targetUser);
+		if (userT) {
+			userT = userT.name;
 		} else {
-			var medalData = League.getData(params[0]);
-			if (toId(params[1]) !== 'off') {
-				if (Rooms.rooms[League.leagueRoom]) {
-					Rooms.rooms[League.leagueRoom].addRaw('<b>' + userT.name + ' ha sido asignado en el puesto de <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>.</b>');
-				}
-				return this.sendReply(userT.name + " asignado en el puesto correspondiente.");
-			} else {
-				if (Rooms.rooms[League.leagueRoom]) {
-					Rooms.rooms[League.leagueRoom].addRaw('<b>El puesto de <font color="' + medalData.colorGym + '">' + medalData.desc + '</font> está ahora vacante.</b>');
-				}
-				return this.sendReply("Puesto asignado como vacante.");
-			}
+			userT = targetUser;
 		}
+		var medalId = League.findMedal(userT);
+		if (medalId) return this.sendReply(userT + " no es miembro de ninguna liga del servidor.");
+		var medalData = League.getMedalData(medalId);
+		if (!medalData) return this.sendReply("La medalla especificada no existe.");
+		return this.sendReplyBox(userT + ' puede hacer entrega de: <b>' + Tools.escapeHTML(medalData.name) + ':</b><br /><br /><img src="' + encodeURI(medalData.image) + '" title="' + Tools.escapeHTML(medalData.name) + '" width="' + Tools.escapeHTML(medalData.width) + '" height="' + Tools.escapeHTML(medalData.height) + '" />&nbsp;');
+	},
+	
+	qmedals: function (target, room, user, connection) {
+		//low level commmand
+		if (Config.emergency && ResourceMonitor.countCmd(connection.ip, user.name)) return false;
+		connection.send('|queryresponse|userdetails|' + JSON.stringify({
+			medals: League.getMedalQuery(user.name),
+		}));
+		return false;
+	},
+	
+	league: 'liga',
+	lideres: 'liga',
+	liga: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		var leagueId = League.findLeague(target, room.id);
+		if (!leagueId) return this.sendReply("La liga especificada no está registrada en el servidor.");
+		return this.sendReplyBox(League.getLeagueTable(leagueId));
+	},
+	
+	leaguelist: function (target, room, user) {
+		if (!this.can("league")) return false;
+		return this.sendReplyBox("Ligas (ID): " + League.getAllLeagues());
+	},
+	
+	newleague: 'addleague',
+	addleague: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna liga.");
+		var params = target.split(',');
+		if (!params || params.length < 3) return this.sendReply("Usage: /addleague [id], [name], [room]");
+		if (League.newLeague(params[0], params[1], params[2])) return this.sendReply("Liga: " + toId(params[0]) + " creada con exito.");
+		this.sendReply("La liga especificada ya existía.");
+	},
+	
+	deleteleague: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna liga.");
+		if (League.deleteLeague(target)) return this.sendReply("Liga: " + toId(target) + " eliminada con exito.");
+		this.sendReply("La liga especificada no existe.");
+	},
+	
+	eleague: 'editleague',
+	editleague: function (target, room, user) {
+		if (!this.can("league")) return false;
+		if (!target) return this.sendReply("No has especificado ninguna liga.");
+		var params = target.split(',');
+		if (!params || params.length < 3) return this.sendReply("Usage: /editleague [id], [name/room], [data]");
+		var opc = toId(params[1]).substr(0,1);
+		if (League.editLeague(params[0], opc, params[2])) return this.parse("/liga " + params[0]);
+		this.sendReply("Alguno de los datos no es correcto.");
+	},
+	
+	setgymleader: function (target, room, user) {
+		if (!this.can('league')) return false;
+		if (!target) return this.sendReply('Usage: /setgymleader [id-league], [user], [id-medal]');
+		var params = target.split(',');
+		if (!params || params.length < 3) return this.sendReply("Usage: /setgymleader [id-league], [user], [id-medal]");
+		if (!Users.get(params[1])) this.sendReply('Warning: ' + toId(params[1]) + ' is offline.');
+		if (League.addLeader(params[0], params[1], 'g', params[2])) return this.sendReply('Usuario ' + toId(params[1]) + ' asignado en el puesto correspondiente.');
+		this.sendReply("Alguno de los datos no es correcto.");
+	},
+	
+	setelite: function (target, room, user) {
+		if (!this.can('league')) return false;
+		if (!target) return this.sendReply('Usage: /setelite [id-league], [user], [id-medal]');
+		var params = target.split(',');
+		if (!params || params.length < 3) return this.sendReply("Usage: /setelite [id-league], [user], [id-medal]");
+		if (!Users.get(params[1])) this.sendReply('Warning: ' + toId(params[1]) + ' is offline.');
+		if (League.addLeader(params[0], params[1], 'e', params[2])) return this.sendReply('Usuario ' + toId(params[1]) + ' asignado en el puesto correspondiente.');
+		this.sendReply("Alguno de los datos no es correcto.");
+	},
+	
+	removegymleader: function (target, room, user) {
+		if (!this.can('league')) return false;
+		if (!target) return this.sendReply('Usage: /removegymleader [id-league], [id-medal]');
+		var params = target.split(',');
+		if (!params || params.length < 2) return this.sendReply("Usage: /removegymleader [id-league], [id-medal]");
+		if (League.removeLeader(params[0], params[1])) return this.sendReply('Puesto de la liga especificada borrado con exito.');
+		this.sendReply("Alguno de los datos no es correcto.");
 	},
 
-	gymdesc: function (target, room, user) {
-		if (!target) return this.sendReply('Usage: /gymdesc [data]');
-		var medalId = League.findMedalFromLeader(user.name);
-		if (!medalId) return this.sendReply('No ocupas ningún puesto en la liga.');
-		var html = Shop.deleteValues(target);
-		if (!League.setGymDescHTML(medalId, html)) return this.sendReply('Nombre de Medalla inexistente');
-		this.sendReply('Datos cambiados correctamente');
-		return this.parse("/liga " + medalId);
-	},
-
+	givemedal: 'darmedalla',
 	concedemedal: 'darmedalla',
 	darmedalla: function (target, room, user) {
-		if (!target) return this.sendReply('Usage: /darmedalla [user], [1-6]');
+		if (!target) return this.sendReply('Usage: /darmedalla [user], (id)');
 		var params = target.split(',');
-		target = params[0];
-		var medalId = League.findMedalFromLeader(user.name);
-		if (!medalId) return this.sendReply('No ocupas ningún puesto en la liga.');
-		var userT = Users.get(target);
-		if (!userT) return this.sendReply("El usuario debe estar conectado.");
-		if (!League.giveMedal(userT.name, medalId)) return this.sendReply("El usuario ya poseía la medalla.");
-		var medalData = League.getData(medalId);
-		if (Rooms.rooms[League.leagueRoom]) {
-			Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, ha entregado una medalla a ' + userT.name + '</b>.');
+		if (params.length === 1) {
+			var userT = Users.get(params[0]);
+			if (!userT) return this.sendReply('El usuario ' + toId(target) + ' no existe o no está disponible.');
+			var medalId = League.findMedal(user.name);
+			if (!medalId) return this.sendReply('No estas registrado como miembro de ninguna liga.');
+			if (League.findLeagueFromRoom(room.id) !== League.findLeagueFromLeader(user.userid)) return this.sendReply('Este comando solo puede ser usado en la Sala correspondiente a la liga.');
+			var medalData = League.getMedalData(medalId);
+			if (!League.giveMedal(medalId, params[0])) return this.sendReply('El usuario ya poseía la medalla que intentas entregar.');
+			userT.popup(user.name + " te ha entregado la siguiente medalla: " + medalData.name + "\nRecuerda que puedes comproar tus medallas con el comando /medallas");
+			this.addModCommand(user.name + " ha entregado su medalla (" + medalData.name + ") a " + toId(target) + '.');
+			return;
+		} else if(params.length > 1){
+			if (!this.can('league')) return false;
+			var userT = Users.get(params[0]);
+			if (!userT) return this.sendReply('El usuario ' + toId(params[0]) + ' no existe o no está disponible.');
+			if (!League.giveMedal(params[1], params[0])) return this.sendReply('El usuario ya poseía dicha medalla o el Id es incorrecto.');
+			return this.sendReply('Medalla (' + League.getMedalData(params[1]).name + ') entregada a ' + toId(params[0]) + '.');
 		}
-		userT.popup(user.name + ', ' + medalData.desc + ', te ha entregado su medalla.');
-		if (params[1]) {
-			var result = parseInt(params[1]);
-			if (!result || result < 1 || result > 6) return this.sendReply('Medalla entregada. No se pudo entregar el premio porque el resultado debe ser un numero del 1 al 6');
-			Shop.giveMoney(userT.name, result * 100);
-			return this.sendReply('Medalla entregada. ' + userT.name + ' recibe ' + result + '00 pd como premio.');
-		}
-		return this.sendReply('Medalla entregada.');
+		return this.sendReply('Usage: /darmedalla [user], (id)');
 	},
 
+	removemedal: 'quitarmedalla',
 	quitarmedalla: function (target, room, user) {
-		if (!target) return this.sendReply('Usage: /quitarmedalla [user]');
-		var medalId = League.findMedalFromLeader(user.name);
-		if (!medalId) return this.sendReply('No ocupas ningún puesto en la liga.');
-		var userT = Users.get(target);
-		if (!userT) {
-			userT = toId(target);
-		} else {
-			userT = userT.name;
-		}
-		if (!League.removeMedal(target, medalId)) return this.sendReply("El usuario no poseía la medalla.");
-		var medalData = League.getData(medalId);
-		if (Rooms.rooms[League.leagueRoom]) {
-			Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, ha quitado su medalla a ' + userT + ' por incumplimiento de las reglas</b>.');
-		}
-		return this.sendReply('Medalla retirada.');
-	},
-
-	setgym: function (target, room, user) {
-		if (!this.can('leagueadmin')) return false;
-		if (!target) return this.sendReply('Usage: /setgym [name/desc/color/image], [data]');
+	if (!target) return this.sendReply('Usage: /quitarmedalla [user], (id)');
 		var params = target.split(',');
-		if (!params || params.length < 3) return this.sendReply("Usage: /setgym [medalId], [name/desc/color/image], [data]");
-		switch (toId(params[1])) {
-			case 'name':
-				if (!League.setGymDesc(params[0], params[2])) return this.sendReply('Nombre de Medalla inexistente');
-				this.sendReply('Datos cambiados correctamente');
-				return this.parse("/leaguedata " + params[0]);
-			case 'image':
-				if (!League.setMedalImage(params[0], params[2])) return this.sendReply('Nombre de Medalla inexistente');
-				this.sendReply('Datos cambiados correctamente');
-				return this.parse("/leaguedata " + params[0]);
-			case 'color':
-				if (!League.setGymColor(params[0], params[2])) return this.sendReply('Nombre de Medalla inexistente');
-				this.sendReply('Datos cambiados correctamente');
-				return this.parse("/leaguedata " + params[0]);
-			case 'tier':
-				if (!League.setGymTier(params[0], params[2])) return this.sendReply('Nombre de Medalla inexistente');
-				this.sendReply('Datos cambiados correctamente');
-				return this.parse("/leaguedata " + params[0]);
-			case 'desc':
-				if (!League.setGymDescHTML(params[0], target.substr(params[0].length + params[1].length + 2))) return this.sendReply('Nombre de Medalla inexistente');
-				this.sendReply('Datos cambiados correctamente');
-				return this.parse("/liga " + params[0]);
+		if (params.length === 1) {
+			var medalId = League.findMedal(user.name);
+			if (!medalId) return this.sendReply('No estas registrado como miembro de ninguna liga.');
+			if (League.findLeagueFromRoom(room.id) !== League.findLeagueFromLeader(user.userid)) return this.sendReply('Este comando solo puede ser usado en la Sala correspondiente a la liga.');
+			if (!League.removeMedal(medalId, params[0])) return this.sendReply('El usuario ya poseía la medalla que intentas entregar.');
+			this.addModCommand(user.name + " ha retirado su medalla a " + toId(target) + '.');
+			return;
+		} else if(params.length > 1){
+			if (!this.can('league')) return false;
+			if (!League.removeMedal(params[1], params[0])) return this.sendReply('El usuario no poseía dicha medalla o el Id es incorrecto.');
+			return this.sendReply('Medalla (' + League.getMedalData(params[1]).name + ') retirada a ' + toId(params[0]) + '.');
 		}
-	},
-	
-	deletegym: function (target, room, user) {
-		if (!this.can('leagueadmin')) return false;
-		if (!target) return this.sendReply('Usage: /deletegym [medalId]');
-		return this.sendReply(League.deleteLeague(target));
-	},
-	
-	addgym: function (target, room, user) {
-		if (!this.can('leagueadmin')) return false;
-		if (!target) return this.sendReply('Usage: /addgym [medalId]');
-		return this.sendReply(League.newLeague(target));
-	},
-	
-	leaguelist: 'getleaguelist',
-	getleaguelist: function (target, room, user) {
-		if (!this.can('leagueadmin')) return false;
-		return this.sendReplyBox("<b>Lista de Puestos:</b> " + League.getAllGyms());
-	},
-	
-	leaguechallenges: 'desafios',
-	desafios: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
-		if (!target) return this.sendReplyBox(League.getChallenges(user.name));
-		return this.sendReplyBox(League.getChallenges(target));
-	},
-	
-	challengueleader: 'retarlider',
-	retarliga: 'retarlider',
-	desafiarlider: 'retarlider',
-	retarlider: function (target, room, user) {
-		if (!target) return this.sendReply("No has especicado ningun usuario");
-		this.sendReply(League.challengeLeader(target, user));
-	},
-	
-	dchall: 'clearchallenge',
-	borrardesafio: 'clearchallenge',
-	clearchallenge: function (target, room, user) {
-		if (!target) return this.sendReply("No has especicado ningun usuario");
-		if (League.findMedalFromLeader(user.name)) return this.sendReply(League.finishChallenge(user.name, target));
-		return this.sendReply("No figuras como miembro de la liga.");
-	},
-	
-	limpiardesafios: 'clearchallenges',
-	clearchallenges: function (target, room, user) {
-		if (target && !this.can('leagueadmin')) return false;
-		if (target) {
-			this.sendReply(League.clearChallenges(target));
-		} else {
-			if (League.findMedalFromLeader(user.name)) return this.sendReply(League.clearChallenges(user.name));
-			return this.sendReply("No figuras como miembro de la liga.");
-		}
-	},
-	
-	awayleague: 'blockleaguechallenges',
-	blockleague: 'blockleaguechallenges',
-	blockleaguechallenges: function (target, room, user) {
-		var medalId = League.findMedalFromLeader(user.name);
-		if (medalId) {
-			if (user.blockLeague) return this.sendReply("Ya estabas bloqueando los desafíos de la liga.");
-			user.blockLeague = 1;
-			if (Rooms.rooms[League.leagueRoom]) {
-				var medalData = League.getData(medalId);
-				Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, ha dejado de estar disponible temporalmente para retos oficiales de la liga.</b>');
-			}
-			return this.sendReply('Has bloqueado los desafios oficiales de la liga viridian.');
-		}
-		return this.sendReply("No figuras como miembro de la liga.");
-	},
-	
-	backleague: 'unblockleaguechallenges',
-	unblockleague: 'unblockleaguechallenges',
-	unblockleaguechallenges: function (target, room, user) {
-		var medalId = League.findMedalFromLeader(user.name);
-		if (medalId) {
-			if (!user.blockLeague) return this.sendReply("No estabas bloqueando los desafíos de la liga.");
-			user.blockLeague = 0;
-			if (Rooms.rooms[League.leagueRoom]) {
-				var medalData = League.getData(medalId);
-				Rooms.rooms[League.leagueRoom].addRaw('<b>' + user.name + ', <font color="' + medalData.colorGym + '">' + medalData.desc + '</font>, está disponible para aceptar retos oficiaes de la liga.</b>');
-			}
-			return this.sendReply('Has desbloqueado los desafios oficiales de la liga viridian.');
-		}
-		return this.sendReply("No figuras como miembro de la liga.");
+		return this.sendReply('Usage: /quitarmedalla [user], (id)');
 	},
 
 	/*********************************************************
